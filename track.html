@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تتبع الطلب</title>
+  <style>
+    body {
+      font-family: Arial;
+      direction: rtl;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      font-size: 16px;
+    }
+    .order-info {
+      margin-top: 20px;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      display: inline-block;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🔍 تتبع الطلب</h2>
+  <input type="text" id="orderIdInput" placeholder="أدخل رقم الطلبية (مثلاً: A1B2C3)">
+  <br>
+  <button onclick="trackOrder()">📦 تتبع</button>
+
+  <div id="orderResult"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+      authDomain: "cafeteria-students-app.firebaseapp.com",
+      databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "cafeteria-students-app",
+      storageBucket: "cafeteria-students-app.appspot.com",
+      messagingSenderId: "338557210649",
+      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function trackOrder() {
+      const inputId = document.getElementById("orderIdInput").value.trim().toUpperCase();
+      const resultDiv = document.getElementById("orderResult");
+      resultDiv.innerHTML = "🔄 جارٍ البحث...";
+
+      db.ref("orders").once("value", snapshot => {
+        let found = false;
+        snapshot.forEach(child => {
+          if (child.key.slice(-6).toUpperCase() === inputId) {
+            const order = child.val();
+            found = true;
+            let html = `
+              <div class='order-info'>
+                <h3>✅ الطلبية موجودة</h3>
+                <b>رقم الطلب:</b> ${inputId}<br>
+                <b>وقت الاستلام:</b> ${order.pickupTime}<br>
+                <b>المجموع:</b> ₪${order.total}<br><br>
+                <b>تفاصيل الطلب:</b><ul>
+            `;
+            order.items.forEach(item => {
+              html += `<li>${item.name} - ₪${item.price} ${item.note ? " (ملاحظات: " + item.note + ")" : ""}</li>`;
+            });
+            html += `</ul><br><small>🕓 أُرسل بتاريخ: ${order.timestamp}</small></div>`;
+            resultDiv.innerHTML = html;
+          }
+        });
+
+        if (!found) {
+          resultDiv.innerHTML = "<div style='color: red;'>🚫 لم يتم العثور على الطلب!</div>";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>سلة الطلبات</title>
+  <style>
+    body {
+      font-family: Arial;
+      direction: rtl;
+      text-align: center;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .cart-item {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin: 15px auto;
+      padding: 15px;
+      width: 300px;
+      position: relative;
+    }
+    textarea {
+      width: 90%;
+      resize: none;
+      margin-top: 10px;
+    }
+    button {
+      margin: 10px 5px;
+      padding: 8px 16px;
+    }
+    #pickupTime {
+      direction: ltr;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🛒 سلة الطلبات</h2>
+  <div id="cartList"></div>
+
+  <label>🕒 وقت الاستلام:</label><br>
+  <input type="time" id="pickupTime"><br><br>
+
+  <button onclick="submitOrder()">✅ إرسال الطلب</button>
+  <button onclick="goBack()">⬅️ رجوع إلى المنيو</button>
+
+  <div id="status"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+      authDomain: "cafeteria-students-app.firebaseapp.com",
+      databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "cafeteria-students-app",
+      storageBucket: "cafeteria-students-app.appspot.com",
+      messagingSenderId: "338557210649",
+      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let order = JSON.parse(localStorage.getItem("order")) || {};
+    let cart = order.cart || [];
+
+    function updateCartView() {
+      const cartDiv = document.getElementById("cartList");
+      cartDiv.innerHTML = "";
+
+      cart.forEach((item, i) => {
+        cartDiv.innerHTML += `
+          <div class="cart-item">
+            <button class="delete-btn" onclick="removeItem(${i})">حذف</button>
+            <b>${item.name}</b> - ₪${item.price}<br>
+            <textarea placeholder="ملاحظات (مثلاً: بدون مخلل)"
+                      oninput="updateNote(${i}, this.value)">${item.note || ""}</textarea>
+          </div>
+        `;
+      });
+
+      if (order.pickupTime) {
+        document.getElementById("pickupTime").value = order.pickupTime;
+      }
+    }
+
+    function updateNote(index, note) {
+      cart[index].note = note;
+      order.cart = cart;
+      localStorage.setItem("order", JSON.stringify(order));
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      order.cart = cart;
+      localStorage.setItem("order", JSON.stringify(order));
+      updateCartView();
+    }
+
+    function submitOrder() {
+      const time = document.getElementById("pickupTime").value;
+
+      if (!time || cart.length === 0) {
+        document.getElementById("status").innerHTML = `<span style="color: red;">❗ أدخل وقت الاستلام وأضف طلبات أولًا.</span>`;
+        return;
+      }
+
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      const fullOrder = {
+        items: cart,
+        pickupTime: time,
+        total: total,
+        timestamp: new Date().toLocaleString("en-US")
+      };
+
+      const ordersRef = db.ref("orders");
+      const newOrderRef = ordersRef.push();
+
+      newOrderRef.set(fullOrder, (error) => {
+        if (error) {
+          document.getElementById("status").innerHTML = `<div style="color: red;">❌ فشل في إرسال الطلب. الرجاء المحاولة.</div>`;
+          console.error("خطأ:", error);
+        } else {
+          const orderId = newOrderRef.key.slice(-6).toUpperCase();
+          document.getElementById("status").innerHTML = `
+            <div style="margin-top: 20px; padding: 15px; background-color: #d4edda; color: #155724; border-radius: 10px;">
+              ✅ تم إرسال الطلب بنجاح!<br>
+              <strong>رقم الطلبية:</strong> ${orderId}
+            </div>
+          `;
+          localStorage.removeItem("order");
+          cart = [];
+          updateCartView();
+        }
+      });
+    }
+
+    function goBack() {
+      window.location.href = "menu.html";
+    }
+
+    updateCartView();
+  </script>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+    authDomain: "cafeteria-students-app.firebaseapp.com",
+    databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "cafeteria-students-app",
+    storageBucket: "cafeteria-students-app.appspot.com",
+    messagingSenderId: "338557210649",
+    appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  function sendOrder() {
+    const orderTime = document.getElementById("orderTime").value;
+    const notes = document.getElementById("notes").value;
+    const total = document.getElementById("totalPrice").innerText;
+    const userId = localStorage.getItem("userEmail") || "anonymous";
+
+    const newOrderRef = database.ref("orders").push();
+    newOrderRef.set({
+      user: userId,
+      total: total,
+      time: orderTime,
+      notes: notes,
+      status: "قيد المعالجة",
+      createdAt: new Date().toISOString()
+    }).then(() => {
+      alert("✅ تم إرسال الطلب بنجاح!");
+      localStorage.removeItem("cart");
+      window.location.href = "myorders.html";
+    });
+  }
+</script>
+
+</body>
+</html>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+    authDomain: "cafeteria-students-app.firebaseapp.com",
+    databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "cafeteria-students-app",
+    storageBucket: "cafeteria-students-app.appspot.com",
+    messagingSenderId: "338557210649",
+    appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  function sendOrder() {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      alert("الرجاء تسجيل الدخول قبل إرسال الطلب.");
+      return;
+    }
+
+    const orderItems = JSON.parse(localStorage.getItem("cart")) || [];
+    const notes = document.getElementById("orderNotes")?.value || "";
+    const pickupTime = document.getElementById("pickupTime")?.value || "";
+    const totalPrice = orderItems.reduce((sum, item) => sum + item.price, 0);
+
+    const newOrderRef = firebase.database().ref("orders").push();
+    newOrderRef.set({
+      uid: user.uid,
+      items: orderItems,
+      notes: notes,
+      pickupTime: pickupTime,
+      totalPrice: totalPrice,
+      status: "قيد التحضير",
+      timestamp: Date.now()
+    }).then(() => {
+      alert("✅ تم إرسال الطلب بنجاح!");
+      localStorage.removeItem("cart");
+      window.location.href = "myorders.html";
+    }).catch((err) => {
+      console.error(err);
+      alert("حدث خطأ أثناء الإرسال.");
+    });
+  }
+</script>
+
+<button onclick="sendOrder()">إرسال الطلب</button>
