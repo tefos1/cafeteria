@@ -36,48 +36,51 @@
 </head>
 <body>
 
-  <h2>📝 إنشاء حساب جديد</h2>
+    <h2>📝 إنشاء حساب جديد</h2>
 
-  <input type="email" id="email" placeholder="البريد الإلكتروني" required />
-  <input type="password" id="password" placeholder="كلمة المرور" required />
-  <button onclick="register()">إنشاء الحساب</button>
+    <input type="email" id="email" placeholder="البريد الإلكتروني" required />
+    <input type="password" id="password" placeholder="كلمة المرور" required />
+    <button onclick="register()">إنشاء الحساب</button>
 
-  <div id="message"></div>
+    <div id="message"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
-      authDomain: "cafeteria-students-app.firebaseapp.com",
-      projectId: "cafeteria-students-app",
-      storageBucket: "cafeteria-students-app.appspot.com",
-      messagingSenderId: "338557210649",
-      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
-    };
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+            authDomain: "cafeteria-students-app.firebaseapp.com",
+            projectId: "cafeteria-students-app",
+            storageBucket: "cafeteria-students-app.appspot.com",
+            messagingSenderId: "338557210649",
+            appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+        };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-    function register() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const msg = document.getElementById("message");
+        function register() {
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const msg = document.getElementById("message");
 
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(user => {
-          msg.innerHTML = "✅ تم إنشاء الحساب بنجاح، يتم التوجيه...";
-          setTimeout(() => {
-            localStorage.setItem("userUID", user.user.uid);
-            window.location.href = "menu.html";
-          }, 1500);
-        })
-        .catch(error => {
-          msg.innerHTML = "❌ فشل إنشاء الحساب: " + error.message;
-        });
-    }
-  </script>
-
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(user => {
+                    msg.innerHTML = "✅ تم إنشاء الحساب بنجاح، يتم التوجيه...";
+                    setTimeout(() => {
+                        localStorage.setItem("userUID", user.user.uid);
+                        window.location.href = "menu.html";
+                    }, 1500);
+                })
+                .catch(error => {
+                    msg.innerHTML = "❌ فشل إنشاء الحساب: " + error.message;
+                });
+        }
+    </script>
+    <div style="text-align: center; margin-top: 30px;">
+        <!-- ⬇️ زر تسجيل الدخول -->
+        <p>لديك حساب؟ <a href="index.html" style="color: blue;">سجّل الدخول من هنا</a></p>
+    </div>
 </body>
 </html>
