@@ -1,212 +1,123 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>لوحة إدارة الكافتيريا</title>
-  <style>
-    body {
-      font-family: Arial;
-      direction: rtl;
-      background-color: #f4f4f4;
-      text-align: center;
-      padding: 20px;
-    }
-    .order-card {
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin: 15px auto;
-      padding: 15px;
-      width: 90%;
-      max-width: 600px;
-      text-align: right;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    ul {
-      padding-right: 20px;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <title>لوحة إدارة الطلبات</title>
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f8f8f8;
+            direction: rtl;
+            padding: 20px;
+        }
+
+        .order-card {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            margin: 15px auto;
+            padding: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+
+        select, button {
+            margin-top: 10px;
+            margin-left: 5px;
+            padding: 5px 10px;
+        }
+    </style>
 </head>
 <body>
+    <h2>📋 لوحة إدارة الطلبات</h2>
+    <div id="ordersContainer">🔄 تحميل...</div>
 
-  <h2>📋 جميع الطلبات</h2>
-  <div id="ordersList">🔄 جارٍ تحميل الطلبات...</div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
-      authDomain: "cafeteria-students-app.firebaseapp.com",
-      databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "cafeteria-students-app",
-      storageBucket: "cafeteria-students-app.appspot.com",
-      messagingSenderId: "338557210649",
-      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
-    };
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+            authDomain: "cafeteria-students-app.firebaseapp.com",
+            databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "cafeteria-students-app",
+            storageBucket: "cafeteria-students-app.appspot.com",
+            messagingSenderId: "338557210649",
+            appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+        };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const container = document.getElementById("ordersContainer");
 
-    const container = document.getElementById("ordersList");
+        function renderOrders(snapshot) {
+            container.innerHTML = "";
+            if (!snapshot.exists()) {
+                container.innerHTML = "<p>🚫 لا توجد طلبات حالياً.</p>";
+                return;
+            }
 
-    db.ref("orders").once("value", snapshot => {
-      if (!snapshot.exists()) {
-        container.innerHTML = "<div>🚫 لا توجد طلبات حالياً</div>";
-        return;
-      }
+            snapshot.forEach(child => {
+                const order = child.val();
+                const id = order.code || child.key.slice(-6).toUpperCase();
+                const itemsList = order.items?.map(item =>
+                    `<li>${item.name} - ₪${item.price}${item.note ? " (ملاحظات: " + item.note + ")" : ""}</li>`
+                ).join("") || "";
 
-      let content = "";
-      snapshot.forEach(child => {
-        const order = child.val();
-        const id = child.key.slice(-6).toUpperCase();
-        let itemList = "<ul>";
-        order.items.forEach(item => {
-          itemList += `<li>${item.name} - ₪${item.price} ${item.note ? "(ملاحظات: " + item.note + ")" : ""}</li>`;
-        });
-        itemList += "</ul>";
+                const card = document.createElement("div");
+                card.className = "order-card";
+                card.innerHTML = `
+              <h3>🧾 رقم الطلب: ${id}</h3>
+              <p><strong>وقت الاستلام:</strong> ${order.pickupTime}</p>
+              <p><strong>الملاحظات:</strong> ${order.notes || "لا يوجد"}</p>
+              <p><strong>المجموع:</strong> ₪${order.total || order.totalPrice || 0}</p>
+              <p><strong>الحالة الحالية:</strong> <span id="statusText-${child.key}" style="color:blue">${order.status || 'قيد المعالجة'}</span></p>
+              <ul>${itemsList}</ul>
 
-        content += `
-          <div class="order-card">
-            <b>رقم الطلب:</b> ${id}<br>
-            <b>وقت الاستلام:</b> ${order.pickupTime}<br>
-            <b>المجموع:</b> ₪${order.total}<br>
-            <b>تاريخ الإرسال:</b> ${order.timestamp}<br>
-            <hr>
-            <b>تفاصيل الطلب:</b>${itemList}
-          </div>
-        `;
-      });
+              <select id="statusSelect-${child.key}">
+                <option value="قيد المعالجة" ${order.status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
+                <option value="جاهز" ${order.status === "جاهز" ? "selected" : ""}>جاهز</option>
+                <option value="تم الاستلام" ${order.status === "تم الاستلام" ? "selected" : ""}>تم الاستلام</option>
+                <option value="أُلغي" ${order.status === "أُلغي" ? "selected" : ""}>أُلغي</option>
+              </select>
 
-      container.innerHTML = content;
-    });
-  </script>
-<div id="adminOrders"></div>
+              <button onclick="updateStatus('${child.key}', '${id}')">✅ تحديث الحالة</button>
+              <button onclick="deleteOrder('${child.key}')">🗑 حذف الطلب</button>
+            `;
+                container.appendChild(card);
+            });
+        }
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+        db.ref("orders").on("value", renderOrders);
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
-    authDomain: "cafeteria-students-app.firebaseapp.com",
-    databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "cafeteria-students-app",
-    storageBucket: "cafeteria-students-app.appspot.com",
-    messagingSenderId: "338557210649",
-    appId: "1:338557210649:web:ba36c4623b4677ca585a88"
-  };
+        function updateStatus(orderKey, orderCode) {
+            const newStatus = document.getElementById(`statusSelect-${orderKey}`).value;
+            firebase.database().ref("orders/" + orderKey + "/status").set(newStatus).then(() => {
+                document.getElementById(`statusText-${orderKey}`).innerText = newStatus;
 
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const adminDiv = document.getElementById("adminOrders");
+                const notification = {
+                    orderId: orderCode,
+                    message: `📢 تم تحديث حالة طلبك إلى: ${newStatus}`,
+                    time: new Date().toISOString(),
+                    read: false
+                };
+                firebase.database().ref("notifications").push(notification);
 
-  db.ref("orders").on("value", (snapshot) => {
-    adminDiv.innerHTML = "";
-    snapshot.forEach((child) => {
-      const order = child.val();
-      const key = child.key;
-      const div = document.createElement("div");
-      div.style = "border: 1px solid black; padding: 10px; margin: 10px;";
+                if (newStatus === "تم الاستلام") {
+                    setTimeout(() => {
+                        firebase.database().ref("orders/" + orderKey).remove().then(() => location.reload());
+                    }, 500);
+                }
+            }).catch(err => alert("❌ خطأ: " + err));
+        }
 
-      div.innerHTML = `
-        <b>الطالب:</b> ${order.user}<br>
-        <b>الوقت:</b> ${order.time}<br>
-        <b>السعر:</b> ${order.total}<br>
-        <b>ملاحظات:</b> ${order.notes}<br>
-        <b>الحالة الحالية:</b> <b style='color:blue;'>${order.status}</b><br>
-        <select id="status_${key}">
-          <option value="قيد المعالجة">قيد المعالجة</option>
-          <option value="جاهز">جاهز</option>
-          <option value="تم الاستلام">تم الاستلام</option>
-          <option value="أُلغي">أُلغي</option>
-        </select>
-        <button onclick="updateStatus('${key}')">تحديث الحالة</button>
-      `;
-      adminDiv.appendChild(div);
-    });
-  });
-
-  
-function updateStatus(id) {
-  const newStatus = document.getElementById("status_" + id).value;
-  db.ref("orders/" + id + "/status").set(newStatus).then(() => {
-    alert("تم تحديث الحالة ✅");
-    const notification = {
-      orderId: id,
-      message: `📢 تم تحديث حاله طلبك إلى: ${newStatus}`,
-      time: new Date().toISOString(),
-      read: false
-    };
-    db.ref("notifications").push(notification);
-  });
-}
-
-    const newStatus = document.getElementById("status_" + id).value;
-    db.ref("orders/" + id + "/status").set(newStatus);
-    alert("تم تحديث الحالة ✅");
-  }
-</script>
-
+        function deleteOrder(orderKey) {
+            if (confirm("هل أنت متأكد أنك تريد حذف هذا الطلب؟")) {
+                firebase.database().ref("orders/" + orderKey).remove().then(() => location.reload());
+            }
+        }
+    </script>
 </body>
 </html>
-
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-
-<div id="adminOrdersContainer"></div>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
-    authDomain: "cafeteria-students-app.firebaseapp.com",
-    databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "cafeteria-students-app",
-    storageBucket: "cafeteria-students-app.appspot.com",
-    messagingSenderId: "338557210649",
-    appId: "1:338557210649:web:ba36c4623b4677ca585a88"
-  };
-  firebase.initializeApp(firebaseConfig);
-
-  const container = document.getElementById("adminOrdersContainer");
-
-  firebase.database().ref("orders").on("value", snapshot => {
-    const orders = snapshot.val();
-    container.innerHTML = "";
-    if (!orders) {
-      container.innerHTML = "<p>لا يوجد طلبات حالياً.</p>";
-      return;
-    }
-
-    Object.entries(orders).forEach(([id, order]) => {
-      const div = document.createElement("div");
-      div.className = "order-card";
-      div.innerHTML = `
-        <h3>رقم الطلب: ${id}</h3>
-        <p><strong>الحالة الحالية:</strong> ${order.status}</p>
-        <p><strong>الوجبات:</strong></p>
-        <ul>${order.items.map(item => `<li>${item.name} (${item.price}₪)</li>`).join("")}</ul>
-        <p><strong>الوقت المطلوب:</strong> ${order.pickupTime}</p>
-        <p><strong>الملاحظات:</strong> ${order.notes}</p>
-        <p><strong>المجموع:</strong> ${order.totalPrice}₪</p>
-        <button onclick="updateStatus('${id}', 'جاهز')">تم التحضير</button>
-        <button onclick="updateStatus('${id}', 'أُلغي')">إلغاء</button>
-      `;
-      container.appendChild(div);
-    });
-  });
-
-  function updateStatus(orderId, newStatus) {
-    firebase.database().ref("orders/" + orderId + "/status").set(newStatus)
-      .then(() => {
-        alert("✅ تم تحديث حالة الطلب");
-      })
-      .catch(err => {
-        console.error(err);
-        alert("❌ خطأ أثناء التحديث");
-      });
-  }
-</script>

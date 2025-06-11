@@ -204,3 +204,46 @@
     }
   });
 </script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+  authDomain: "cafeteria-students-app.firebaseapp.com",
+  databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "cafeteria-students-app",
+  storageBucket: "cafeteria-students-app.appspot.com",
+  messagingSenderId: "338557210649",
+  appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+firebase.auth().onAuthStateChanged(function(user) {
+  if (!user) {
+    document.body.innerHTML = "<h3 style='color:red;'>⚠️ يجب تسجيل الدخول لعرض طلباتك</h3>";
+    return;
+  }
+
+  const ref = db.ref("orders");
+  ref.once("value", (snapshot) => {
+    let found = false;
+    snapshot.forEach((childSnapshot) => {
+      childSnapshot.forEach((order) => {
+        if (order.val().uid === user.uid) {
+          found = true;
+          const data = order.val();
+          const orderEl = document.createElement("div");
+          orderEl.innerHTML = `<hr><p>🍔 الأصناف: ${JSON.stringify(data.items)}</p>
+          <p>🕒 الوقت: ${data.timestamp}</p>
+          <p>💸 السعر: ₪${data.total}</p>
+          <p>📦 الحالة: <strong>${data.status}</strong></p>`;
+          document.body.appendChild(orderEl);
+        }
+      });
+    });
+    if (!found) {
+      document.body.innerHTML += "<p>لا توجد طلبات مسجلة.</p>";
+    }
+  });
+});
+</script>

@@ -1,110 +1,116 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>قائمة الطعام</title>
-  <style>
-    body {
-      font-family: Arial;
-      direction: rtl;
-      text-align: center;
-      background-color: #f4f4f4;
-    }
-    .menu-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .meal-card {
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin: 10px;
-      width: 250px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .meal-card img {
-      width: 100%;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-    }
-    .meal-card h3 {
-      margin: 10px 0 5px 0;
-    }
-    .meal-card p {
-      margin: 5px;
-    }
-    .meal-card button {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
-    .link {
-      margin: 20px;
-      display: block;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>قائمة الطعام</title>
+    <style>
+        body {
+            font-family: Arial;
+            direction: rtl;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        .menu-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .meal-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin: 10px;
+            width: 250px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+            .meal-card img {
+                width: 100%;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+            }
+
+            .meal-card h3 {
+                margin: 10px 0 5px 0;
+            }
+
+            .meal-card p {
+                margin: 5px;
+            }
+
+            .meal-card button {
+                background-color: #28a745;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-bottom: 10px;
+            }
+
+        .link {
+            margin: 20px;
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
-  <h1>🍽️ قائمة الطعام</h1>
-  <div class="menu-container" id="menuList"></div>
+    <h1>🍽️ قائمة الطعام</h1>
+    <div class="menu-container" id="menuList"></div>
 
-  <a href="cart.html" class="link">➡️ الانتقال إلى السلة</a>
+    <a href="cart.html" class="link">➡️ الانتقال إلى السلة</a>
 
-  <script>
-    const meals = [
-      {
-        name: "شاورما",
-        price: 20,
-        img: "https://images.unsplash.com/photo-1604908177221-6b433a3c2c58?w=400&h=300&fit=crop"
-      },
-      {
-        name: "بيتزا",
-        price: 25,
-        img: "https://images.unsplash.com/photo-1548365328-9b7d48d7f7f4?w=400&h=300&fit=crop"
-      },
-      {
-        name: "برغر",
-        price: 22,
-        img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop"
-      },
-      {
-        name: "عصير طبيعي",
-        price: 10,
-        img: "https://images.unsplash.com/photo-1572441710560-389d7dd95fdf?w=400&h=300&fit=crop"
-      },
-      {
-        name: "سلطة",
-        price: 15,
-        img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=300&fit=crop"
-      }
-    ];
+    <script>
+        const meals = [
+            {
+                name: "شاورما",
+                price: 20,
+                img: "https://images.unsplash.com/photo-1604908177221-6b433a3c2c58?w=400&h=300&fit=crop"
+            },
+            {
+                name: "بيتزا",
+                price: 25,
+                img: "https://images.unsplash.com/photo-1548365328-9b7d48d7f7f4?w=400&h=300&fit=crop"
+            },
+            {
+                name: "برغر",
+                price: 22,
+                img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop"
+            },
+            {
+                name: "عصير طبيعي",
+                price: 10,
+                img: "https://images.unsplash.com/photo-1572441710560-389d7dd95fdf?w=400&h=300&fit=crop"
+            },
+            {
+                name: "سلطة",
+                price: 15,
+                img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=300&fit=crop"
+            }
+        ];
 
-    function addToCart(name, price) {
-      let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
-      order.cart.push({ name: name, price: price });
-      localStorage.setItem("order", JSON.stringify(order));
-      alert("✅ تم إضافة " + name + " إلى السلة");
-    }
+        function addToCart(name, price) {
+            let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+            order.cart.push({ name: name, price: price });
+            localStorage.setItem("order", JSON.stringify(order));
+            alert("✅ تم إضافة " + name + " إلى السلة");
+        }
 
-    const container = document.getElementById("menuList");
-    meals.forEach(meal => {
-      container.innerHTML += `
-        <div class="meal-card">
-          <img src="${meal.img}" alt="${meal.name}">
-          <h3>${meal.name}</h3>
-          <p>السعر: ₪${meal.price}</p>
-          <button onclick="addToCart('${meal.name}', ${meal.price})">➕ أضف إلى السلة</button>
-        </div>
-      `;
-    });
-  </script>
+        const container = document.getElementById("menuList");
+        meals.forEach(meal => {
+            container.innerHTML += `
+            <div class="meal-card">
+              <img src="${meal.img}" alt="${meal.name}">
+              <h3>${meal.name}</h3>
+              <p>السعر: ₪${meal.price}</p>
+              <button onclick="addToCart('${meal.name}', ${meal.price})">➕ أضف إلى السلة</button>
+            </div>
+          `;
+        });
+    </script>
 
 </body>
 </html>
