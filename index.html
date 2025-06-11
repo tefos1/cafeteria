@@ -1,9 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
   <title>تسجيل الدخول</title>
+
+  <!-- ✅ إعدادات PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4CAF50">
+
   <style>
     body {
       font-family: Arial;
@@ -79,13 +83,21 @@
     }
   </script>
 
+  <!-- زر تسجيل -->
+  <div style="text-align: center; margin-top: 50px;">
+    <a href="register.html" style="display: inline-block; padding: 12px 24px; background-color: #007BFF; color: white; text-decoration: none; border-radius: 6px; font-size: 18px;">
+      تسجيل الدخول / إنشاء حساب
+    </a>
+  </div>
 
-<!-- زر تسجيل -->
-<div style="text-align: center; margin-top: 50px;">
-  <a href="register.html" style="display: inline-block; padding: 12px 24px; background-color: #007BFF; color: white; text-decoration: none; border-radius: 6px; font-size: 18px;">
-    تسجيل الدخول / إنشاء حساب
-  </a>
-</div>
+  <!-- ✅ تفعيل الـ Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('✅ Service Worker مسجّل بنجاح', reg))
+        .catch(err => console.error('❌ فشل التسجيل:', err));
+    }
+  </script>
 
 </body>
 </html>
