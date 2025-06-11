@@ -38,14 +38,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <script>
-        const correctPassword = "1982"; // 🔐 غيّر كلمة السر اللي بدك إياها
-
-        const entered = prompt("🔐 أدخل كلمة المرور للوصول إلى صفحة الإدارة:");
-        if (entered !== correctPassword) {
-            alert("❌ كلمة المرور خاطئة!");
-            document.body.innerHTML = "<h2 style='text-align:center;margin-top:100px;'>🚫 تم منع الوصول</h2>";
-            throw new Error("Unauthorized access");
-        }
         const firebaseConfig = {
             apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
             authDomain: "cafeteria-students-app.firebaseapp.com",
