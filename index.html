@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <title>تسجيل الدخول</title>
 
-  <!-- ✅ إعدادات PWA -->
+  <!-- ✅ دعم PWA للآيفون وSafari -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4CAF50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cafeteria App">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <style>
     body {
@@ -78,26 +81,25 @@
           }, 1500);
         })
         .catch(error => {
-          msg.innerHTML = "❌ خطأ في تسجيل الدخول: " + error.message;
+          msg.innerHTML = "❌ خطأ: " + error.message;
         });
     }
   </script>
 
-  <!-- زر تسجيل -->
-  <div style="text-align: center; margin-top: 50px;">
-    <a href="register.html" style="display: inline-block; padding: 12px 24px; background-color: #007BFF; color: white; text-decoration: none; border-radius: 6px; font-size: 18px;">
-      تسجيل الدخول / إنشاء حساب
+  <!-- تسجيل جديد -->
+  <div style="text-align: center; margin-top: 40px;">
+    <a href="register.html" style="padding: 12px 24px; background-color: #007BFF; color: white; text-decoration: none; border-radius: 6px;">
+      إنشاء حساب جديد
     </a>
   </div>
 
-  <!-- ✅ تفعيل الـ Service Worker -->
+  <!-- ✅ Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('✅ Service Worker مسجّل بنجاح', reg))
-        .catch(err => console.error('❌ فشل التسجيل:', err));
+        .then(reg => console.log('✅ Service Worker مسجّل', reg))
+        .catch(err => console.error('❌', err));
     }
   </script>
-
 </body>
 </html>
