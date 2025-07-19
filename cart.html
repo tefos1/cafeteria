@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>سلة الطلبات</title>
   <style>
     body {
@@ -67,6 +67,33 @@
       font-size: 15px;
       color: #555;
     }
+
+    .summary {
+      background-color: #e9ecef;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      text-align: right;
+      width: 90%;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #sendBtn {
+      background-color: #0d6efd;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    #sendBtn:hover {
+      background-color: #0b5ed7;
+    }
   </style>
 </head>
 <body>
@@ -74,21 +101,48 @@
   <h2>📦 طلباتك الحالية</h2>
   <div id="cartContainer"></div>
 
+  <div class="summary" id="orderSummary" style="display:none;">
+    <p><strong>📅 وقت الطلب:</strong> <span id="orderTime"></span></p>
+    <p><strong>💰 المجموع النهائي:</strong> ₪<span id="totalAmount">0</span></p>
+    <p><strong>🔄 حالة الطلب:</strong> <span id="orderStatus">قيد المعالجة</span></p>
+    <button id="sendBtn" onclick="confirmOrder()">📤 إرسال الطلب</button>
+  </div>
+
   <a href="menu.html" class="back-button">⬅️ الرجوع إلى القائمة</a>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+      authDomain: "cafeteria-students-app.firebaseapp.com",
+      databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "cafeteria-students-app",
+      storageBucket: "cafeteria-students-app.appspot.com",
+      messagingSenderId: "338557210649",
+      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const cartContainer = document.getElementById("cartContainer");
     let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
 
     function displayCart() {
       cartContainer.innerHTML = "";
+      let total = 0;
 
       if (order.cart.length === 0) {
         cartContainer.innerHTML = "<p>السلة فارغة 🛒</p>";
+        document.getElementById("orderSummary").style.display = "none";
         return;
       }
 
       order.cart.forEach((item, index) => {
+        total += item.price;
         let extrasList = "";
         if (item.extras && item.extras.length > 0) {
           extrasList = "<ul>";
@@ -107,12 +161,46 @@
           </div>
         `;
       });
+
+      document.getElementById("totalAmount").textContent = total;
+      document.getElementById("orderTime").textContent = new Date().toLocaleString("ar-EG");
+      document.getElementById("orderSummary").style.display = "block";
     }
 
     function removeItem(index) {
       order.cart.splice(index, 1);
       localStorage.setItem("order", JSON.stringify(order));
       displayCart();
+    }
+
+    function confirmOrder() {
+      const now = new Date();
+      const pickupTime = now.toLocaleString("ar-EG");
+      const items = order.cart.map(item => ({
+        name: item.name,
+        price: item.price,
+        note: item.extras && item.extras.length > 0 ? item.extras.join(", ") : ""
+      }));
+
+      const total = items.reduce((sum, i) => sum + i.price, 0);
+      const orderCode = Math.random().toString(36).substr(2, 6).toUpperCase();
+
+      const newOrder = {
+        code: orderCode,
+        items: items,
+        pickupTime: pickupTime,
+        total: total,
+        status: "قيد المعالجة",
+        notes: ""
+      };
+
+      db.ref("orders").push(newOrder)
+        .then(() => {
+          alert("✅ تم إرسال الطلب إلى المطبخ!\nرقم الطلب: " + orderCode);
+          localStorage.removeItem("order");
+          window.location.reload();
+        })
+        .catch(err => alert("❌ فشل إرسال الطلب: " + err));
     }
 
     displayCart();
