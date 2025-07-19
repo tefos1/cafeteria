@@ -1,123 +1,98 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <meta charset="UTF-8" />
-    <title>لوحة إدارة الطلبات</title>
-    <style>
-        body {
-            font-family: Arial;
-            background-color: #f8f8f8;
-            direction: rtl;
-            padding: 20px;
-        }
-
-        .order-card {
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            margin: 15px auto;
-            padding: 15px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
-        }
-
-        select, button {
-            margin-top: 10px;
-            margin-left: 5px;
-            padding: 5px 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>لوحة التحكم - الطلبات</title>
+  <style>
+    body {
+      font-family: Arial;
+      direction: rtl;
+      background-color: #f8f9fa;
+      text-align: center;
+      padding: 20px;
+    }
+    h2 {
+      color: #0d6efd;
+    }
+    .order-card {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px auto;
+      max-width: 600px;
+      text-align: right;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .order-card ul {
+      padding-right: 20px;
+    }
+    .order-card select {
+      margin-top: 10px;
+      padding: 5px;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-    <h2>📋 لوحة إدارة الطلبات</h2>
-    <div id="ordersContainer">🔄 تحميل...</div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <h2>📋 جميع الطلبات</h2>
+  <div id="ordersContainer"></div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
-            authDomain: "cafeteria-students-app.firebaseapp.com",
-            databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "cafeteria-students-app",
-            storageBucket: "cafeteria-students-app.appspot.com",
-            messagingSenderId: "338557210649",
-            appId: "1:338557210649:web:ba36c4623b4677ca585a88"
-        };
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+      authDomain: "cafeteria-students-app.firebaseapp.com",
+      databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "cafeteria-students-app",
+      storageBucket: "cafeteria-students-app.appspot.com",
+      messagingSenderId: "338557210649",
+      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const container = document.getElementById("ordersContainer");
+    const ordersContainer = document.getElementById("ordersContainer");
 
-        function renderOrders(snapshot) {
-            container.innerHTML = "";
-            if (!snapshot.exists()) {
-                container.innerHTML = "<p>🚫 لا توجد طلبات حالياً.</p>";
-                return;
-            }
+    db.ref("orders").on("value", snapshot => {
+      ordersContainer.innerHTML = "";
+      snapshot.forEach(child => {
+        const order = child.val();
+        const id = child.key;
 
-            snapshot.forEach(child => {
-                const order = child.val();
-                const id = order.code || child.key.slice(-6).toUpperCase();
-                const itemsList = order.items?.map(item =>
-                    `<li>${item.name} - ₪${item.price}${item.note ? " (ملاحظات: " + item.note + ")" : ""}</li>`
-                ).join("") || "";
+        const itemsList = order.items.map(item =>
+          `<li>${item.name} - ₪${item.price}${item.extras?.length ? ' (إضافات: ' + item.extras.join(", ") + ')' : ''}</li>`
+        ).join("");
 
-                const card = document.createElement("div");
-                card.className = "order-card";
-                card.innerHTML = `
-              <h3>🧾 رقم الطلب: ${id}</h3>
-              <p><strong>وقت الاستلام:</strong> ${order.pickupTime}</p>
-              <p><strong>الملاحظات:</strong> ${order.notes || "لا يوجد"}</p>
-              <p><strong>المجموع:</strong> ₪${order.total || order.totalPrice || 0}</p>
-              <p><strong>الحالة الحالية:</strong> <span id="statusText-${child.key}" style="color:blue">${order.status || 'قيد المعالجة'}</span></p>
-              <ul>${itemsList}</ul>
+        const card = document.createElement("div");
+        card.className = "order-card";
+        card.innerHTML = `
+          <h3>🧾 رقم الطلب: ${order.code}</h3>
+          <p><strong>👤 اسم الطالب:</strong> ${order.studentName || "غير محدد"}</p>
+          <p><strong>⏰ وقت الاستلام:</strong> ${order.pickupTime}</p>
+          <p><strong>💰 المجموع:</strong> ₪${order.total}</p>
+          <p><strong>📄 الحالة:</strong> ${order.status}</p>
+          <ul>${itemsList}</ul>
+          <label>تحديث الحالة:
+            <select onchange="updateStatus('${id}', this.value)">
+              <option value="قيد المعالجة" ${order.status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
+              <option value="قيد التحضير" ${order.status === "قيد التحضير" ? "selected" : ""}>قيد التحضير</option>
+              <option value="جاهز" ${order.status === "جاهز" ? "selected" : ""}>جاهز</option>
+              <option value="تم التسليم" ${order.status === "تم التسليم" ? "selected" : ""}>تم التسليم</option>
+            </select>
+          </label>
+        `;
 
-              <select id="statusSelect-${child.key}">
-                <option value="قيد المعالجة" ${order.status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
-                <option value="جاهز" ${order.status === "جاهز" ? "selected" : ""}>جاهز</option>
-                <option value="تم الاستلام" ${order.status === "تم الاستلام" ? "selected" : ""}>تم الاستلام</option>
-                <option value="أُلغي" ${order.status === "أُلغي" ? "selected" : ""}>أُلغي</option>
-              </select>
+        ordersContainer.appendChild(card);
+      });
+    });
 
-              <button onclick="updateStatus('${child.key}', '${id}')">✅ تحديث الحالة</button>
-              <button onclick="deleteOrder('${child.key}')">🗑 حذف الطلب</button>
-            `;
-                container.appendChild(card);
-            });
-        }
+    function updateStatus(orderId, newStatus) {
+      db.ref("orders/" + orderId).update({ status: newStatus });
+    }
+  </script>
 
-        db.ref("orders").on("value", renderOrders);
-
-        function updateStatus(orderKey, orderCode) {
-            const newStatus = document.getElementById(`statusSelect-${orderKey}`).value;
-            firebase.database().ref("orders/" + orderKey + "/status").set(newStatus).then(() => {
-                document.getElementById(`statusText-${orderKey}`).innerText = newStatus;
-
-                const notification = {
-                    orderId: orderCode,
-                    message: `📢 تم تحديث حالة طلبك إلى: ${newStatus}`,
-                    time: new Date().toISOString(),
-                    read: false
-                };
-                firebase.database().ref("notifications").push(notification);
-
-                if (newStatus === "تم الاستلام") {
-                    setTimeout(() => {
-                        firebase.database().ref("orders/" + orderKey).remove().then(() => location.reload());
-                    }, 500);
-                }
-            }).catch(err => alert("❌ خطأ: " + err));
-        }
-
-        function deleteOrder(orderKey) {
-            if (confirm("هل أنت متأكد أنك تريد حذف هذا الطلب؟")) {
-                firebase.database().ref("orders/" + orderKey).remove().then(() => location.reload());
-            }
-        }
-    </script>
 </body>
 </html>
