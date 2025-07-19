@@ -2,95 +2,84 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>🛒 سلة الطلبات</title>
+  <title>السلة</title>
   <style>
     body {
       font-family: Arial;
       direction: rtl;
       text-align: center;
       background-color: #f4f4f4;
-      padding: 20px;
-    }
-
-    .back-button {
-      background-color: #007bff;
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .cart-container {
-      max-width: 700px;
-      margin: auto;
-      background-color: #fff;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      text-align: right;
     }
 
     .cart-item {
-      border-bottom: 1px solid #ddd;
-      padding: 10px 0;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin: 10px auto;
+      padding: 10px;
+      width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
-    .cart-item:last-child {
-      border-bottom: none;
-    }
-
-    .total {
+    .back-button {
       margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .empty {
-      color: gray;
+      display: inline-block;
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
+  <h1>🛒 سلة المشتريات</h1>
+  <div id="cartList"></div>
+  <a class="back-button" href="menu.html">⬅️ الرجوع لقائمة الطعام</a>
 
-  <button class="back-button" onclick="location.href='menu.html'">⬅️ رجوع إلى قائمة الطعام</button>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  <h1>🛒 سلة الطلبات</h1>
-  <div class="cart-container" id="cartContainer">
-    <p class="empty">📭 لا توجد عناصر في السلة.</p>
-  </div>
-  <div class="total" id="totalPrice"></div>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6VP1Jg3YmP_7KYDqyi39MrffUsEFZV0o",
+      authDomain: "chatgpt1-2c999.firebaseapp.com",
+      projectId: "chatgpt1-2c999",
+      storageBucket: "chatgpt1-2c999.appspot.com",
+      messagingSenderId: "1084542882267",
+      appId: "1:1084542882267:web:ca47011ec6ed6783cdb446",
+      measurementId: "G-XHTBG1R78R",
+      databaseURL: "https://chatgpt1-2c999-default-rtdb.firebaseio.com/"
+    };
 
-  <script>
-    async function fetchCartItems() {
-      const orderData = JSON.parse(localStorage.getItem("order")) || { cart: [] };
-      const container = document.getElementById("cartContainer");
-      const totalPriceElem = document.getElementById("totalPrice");
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const cartList = document.getElementById("cartList");
 
-      if (orderData.cart.length === 0) {
-        container.innerHTML = '<p class="empty">📭 لا توجد عناصر في السلة.</p>';
-        totalPriceElem.textContent = '';
-        return;
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const cartRef = ref(db, "carts/" + user.uid);
+        onValue(cartRef, (snapshot) => {
+          cartList.innerHTML = "";
+          let total = 0;
+          snapshot.forEach((child) => {
+            const item = child.val();
+            total += item.price;
+            cartList.innerHTML += `
+              <div class="cart-item">
+                <h3>${item.name}</h3>
+                <p>₪${item.price}</p>
+              </div>
+            `;
+          });
+          cartList.innerHTML += `<h2>الإجمالي: ₪${total}</h2>`;
+        });
+      } else {
+        cartList.innerHTML = "<p>يرجى تسجيل الدخول لعرض السلة.</p>";
       }
-
-      let total = 0;
-      container.innerHTML = '';
-
-      orderData.cart.forEach(item => {
-        total += item.price;
-        const itemDiv = document.createElement("div");
-        itemDiv.className = "cart-item";
-        itemDiv.textContent = `${item.name} - ₪${item.price}`;
-        container.appendChild(itemDiv);
-      });
-
-      totalPriceElem.textContent = `💰 المجموع الكلي: ₪${total}`;
-    }
-
-    fetchCartItems();
+    });
   </script>
-
 </body>
 </html>
