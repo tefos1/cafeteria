@@ -84,10 +84,7 @@
 
     function addToCart(name, price) {
       const user = firebase.auth().currentUser;
-      if (!user) {
-        alert("يجب تسجيل الدخول");
-        return;
-      }
+    
 
       const cartRef = firebase.database().ref("cart/" + user.uid);
       cartRef.push({
