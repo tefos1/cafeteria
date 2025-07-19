@@ -26,6 +26,8 @@
 
         .meal-card img, .drink-card img {
             width: 100%;
+            height: 150px;
+            object-fit: cover;
             border-top-left-radius: 10px;
             border-top-right-radius: 10px;
         }
@@ -34,7 +36,7 @@
             margin: 10px 0 5px 0;
         }
 
-        .meal-card p, .meal-card label, .meal-card select,
+        .meal-card p, .meal-card label,
         .drink-card p, .drink-card button {
             margin: 5px;
             display: block;
@@ -78,7 +80,7 @@
                 <label><input type="checkbox" value="كيتشوب"> كيتشوب</label>
             
               </div>
-              <button onclick="addToCart('شاورما', 20, 0)">➕ أضف إلى السلة</button>
+              <button onclick="addToCart('شاورما', 20)">➕ أضف إلى السلة</button>
             </div>
           
             <div class="meal-card">
@@ -99,7 +101,7 @@
                 <label><input type="checkbox" value="كيتشوب"> كيتشوب</label>
             
               </div>
-              <button onclick="addToCart('شنيتسل', 22, 1)">➕ أضف إلى السلة</button>
+              <button onclick="addToCart('شنيتسل', 22)">➕ أضف إلى السلة</button>
             </div>
           
             <div class="meal-card">
@@ -120,7 +122,7 @@
                 <label><input type="checkbox" value="كيتشوب"> كيتشوب</label>
             
               </div>
-              <button onclick="addToCart('برغر', 25, 2)">➕ أضف إلى السلة</button>
+              <button onclick="addToCart('برغر', 25)">➕ أضف إلى السلة</button>
             </div>
           
             <div class="meal-card">
@@ -141,7 +143,7 @@
                 <label><input type="checkbox" value="كيتشوب"> كيتشوب</label>
             
               </div>
-              <button onclick="addToCart('صدر دجاج', 23, 3)">➕ أضف إلى السلة</button>
+              <button onclick="addToCart('صدر دجاج', 23)">➕ أضف إلى السلة</button>
             </div>
           
             <div class="meal-card">
@@ -162,7 +164,7 @@
                 <label><input type="checkbox" value="كيتشوب"> كيتشوب</label>
             
               </div>
-              <button onclick="addToCart('توست', 15, 4)">➕ أضف إلى السلة</button>
+              <button onclick="addToCart('توست', 15)">➕ أضف إلى السلة</button>
             </div>
           
             <div class="meal-card">
@@ -183,7 +185,7 @@
                 <label><input type="checkbox" value="كيتشوب"> كيتشوب</label>
             
               </div>
-              <button onclick="addToCart('نقنيق', 18, 5)">➕ أضف إلى السلة</button>
+              <button onclick="addToCart('نقنيق', 18)">➕ أضف إلى السلة</button>
             </div>
           </div>
 
@@ -248,30 +250,18 @@
             { name: "نقنيق", price: 18, img: "https://via.placeholder.com/250x150?text=نقنيق" }
         ];
 
-        function addToCart(name, price, mealIndex = null) {
-            let selectedAdditions = [];
-            let selectedDrink = "";
-
-            if (mealIndex !== null) {
-                selectedAdditions = Array.from(document.querySelectorAll(`#additions-${mealIndex} input:checked`)).map(cb => cb.value);
-                selectedDrink = document.querySelector(`#drink-${mealIndex}`).value;
-            }
-
+        function addToCart(name, basePrice) {
             let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
-            let itemName = mealIndex !== null ? `${name} + إضافات: ${selectedAdditions.join(", ")} + مشروب: ${selectedDrink}` : name;
-            order.cart.push({ name: itemName, price: price });
+            const itemName = `${name}`;
+            order.cart.push({ name: itemName, price: basePrice });
             localStorage.setItem("order", JSON.stringify(order));
-            alert("✅ تم إضافة " + name + " إلى السلة");
+            alert("✅ تم إضافة " + name + " إلى السلة بسعر ₪" + basePrice);
         }
 
         const mealContainer = document.getElementById("menuList");
         meals.forEach((meal, i) => {
             const additionsCheckboxes = additions.map(add => `
                 <label><input type="checkbox" value="${add}"> ${add}</label>
-            `).join("");
-
-            const drinksOptions = drinks.map(d => `
-                <option value="${d.name}">${d.name} (₪${d.price})</option>
             `).join("");
 
             mealContainer.innerHTML += `
@@ -283,7 +273,7 @@
                 <p>➕ إختر الإضافات:</p>
                 ${additionsCheckboxes}
               </div>
-              <button onclick="addToCart('${meal.name}', ${meal.price}, ${i})">➕ أضف إلى السلة</button>
+              <button onclick="addToCart('${meal.name}', ${meal.price})">➕ أضف إلى السلة</button>
             </div>
           `;
         });
