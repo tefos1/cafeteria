@@ -108,6 +108,20 @@
       font-size: 18px;
       color: #0d6efd;
     }
+
+    #myOrdersContainer {
+      margin-top: 25px;
+    }
+
+    .my-orders-btn {
+      background-color: #6c757d;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -122,6 +136,12 @@
   </div>
 
   <div id="statusView" style="display:none;"></div>
+
+  <div style="margin-top: 30px;">
+    <button onclick="showMyOrders()" class="my-orders-btn">📄 عرض طلباتي الحالية</button>
+  </div>
+
+  <div id="myOrdersContainer"></div>
 
   <a href="menu.html" class="back-button">⬅️ الرجوع إلى القائمة</a>
 
@@ -198,7 +218,7 @@
       }));
 
       const total = items.reduce((sum, i) => sum + i.price, 0);
-const orderCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const orderCode = Math.floor(100000 + Math.random() * 900000).toString(); // 🔢 رقم طلب مكون من أرقام فقط
 
       const newOrder = {
         code: orderCode,
@@ -233,6 +253,45 @@ const orderCode = Math.floor(100000 + Math.random() * 900000).toString();
         } else {
           statusView.innerHTML = "🚫 تم حذف الطلب أو انتهت صلاحيته.";
         }
+      });
+    }
+
+    function showMyOrders() {
+      const container = document.getElementById("myOrdersContainer");
+      container.innerHTML = "🔄 جاري تحميل طلباتك...";
+
+      db.ref("orders").once("value").then(snapshot => {
+        container.innerHTML = "";
+        let found = false;
+
+        snapshot.forEach(child => {
+          const order = child.val();
+          const id = child.key;
+
+          if (order.code) {
+            found = true;
+            const listItems = order.items?.map(item =>
+              `<li>${item.name} - ₪${item.price}${item.note ? " (ملاحظات: " + item.note + ")" : ""}</li>`
+            ).join("");
+
+            const card = document.createElement("div");
+            card.className = "order-card";
+            card.innerHTML = `
+              <h3>🧾 رقم الطلب: ${order.code}</h3>
+              <p><strong>⏰ وقت الاستلام:</strong> ${order.pickupTime}</p>
+              <p><strong>💰 المجموع:</strong> ₪${order.total}</p>
+              <p><strong>🔄 الحالة:</strong> ${order.status || "قيد المعالجة"}</p>
+              <ul>${listItems}</ul>
+            `;
+            container.appendChild(card);
+          }
+        });
+
+        if (!found) {
+          container.innerHTML = "<p>🚫 لا توجد طلبات حالية.</p>";
+        }
+      }).catch(err => {
+        container.innerHTML = "❌ فشل تحميل الطلبات: " + err;
       });
     }
 
