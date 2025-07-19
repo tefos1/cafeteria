@@ -5,115 +5,123 @@
   <title>قائمة الطعام</title>
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
       direction: rtl;
       text-align: center;
-      background-color: #f4f4f4;
     }
-    .menu-container {
+
+    h2 {
+      margin-top: 30px;
+    }
+
+    .menu-grid {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
+      margin: 30px auto;
+      gap: 20px;
+      max-width: 1200px;
     }
+
     .meal-card {
       background-color: #fff;
-      border: 1px solid #ddd;
       border-radius: 10px;
-      margin: 10px;
-      width: 250px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      width: 220px;
+      padding: 10px;
     }
+
     .meal-card img {
       width: 100%;
       height: 150px;
+      border-radius: 8px;
       object-fit: cover;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
     }
-    .meal-card h3, .meal-card p {
-      margin: 10px;
+
+    .meal-card h3 {
+      margin: 10px 0 5px;
     }
-    .meal-card button {
+
+    .meal-card p {
+      margin: 5px 0;
+    }
+
+    .add-btn {
       background-color: #28a745;
       color: white;
       border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 6px;
       cursor: pointer;
-      margin-bottom: 10px;
     }
-    .link {
-      margin: 20px;
-      display: block;
+
+    .add-btn:hover {
+      background-color: #218838;
     }
   </style>
 </head>
 <body>
 
-  <h1>🍽️ قائمة الطعام</h1>
-  <div class="menu-container" id="menu"></div>
+<h2>🍽️ قائمة الطعام</h2>
 
-  <a href="cart.html" class="link">➡️ السلة</a>
+<div class="menu-grid" id="menu-list">
+  <!-- يتم توليد الوجبات من الجافاسكربت -->
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+<script type="module">
+  // Firebase Auth + فحص تسجيل الدخول
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6VP1Jg3YmP_7KYDqyi39MrffUsEFZV0o",
-      authDomain: "chatgpt1-2c999.firebaseapp.com",
-      projectId: "chatgpt1-2c999",
-      storageBucket: "chatgpt1-2c999.appspot.com",
-      messagingSenderId: "1084542882267",
-      appId: "1:1084542882267:web:ca47011ec6ed6783cdb446",
-      databaseURL: "https://chatgpt1-2c999-default-rtdb.firebaseio.com/"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyB6VP1Jg3YmP_7KYDqyi39MrffUsEFZV0o",
+    authDomain: "chatgpt1-2c999.firebaseapp.com",
+    projectId: "chatgpt1-2c999",
+    storageBucket: "chatgpt1-2c999.appspot.com",
+    messagingSenderId: "1084542882267",
+    appId: "1:1084542882267:web:ca47011ec6ed6783cdb446",
+    databaseURL: "https://chatgpt1-2c999-default-rtdb.firebaseio.com/"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-    const menuRef = ref(db, "menu");
-    const container = document.getElementById("menu");
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    let authResolved = false;
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("يرجى تسجيل الدخول أولاً.");
+      window.location.href = "index.html";
+    } else {
+      console.log("تم تسجيل الدخول: ", user.email);
+    }
+  });
 
-    onAuthStateChanged(auth, (user) => {
-      authResolved = true;
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        onValue(menuRef, (snapshot) => {
-          container.innerHTML = "";
-          snapshot.forEach((child) => {
-            const item = child.val();
-            const card = document.createElement("div");
-            card.className = "meal-card";
-            card.innerHTML = `
-              <img src="${item.image}" alt="${item.name}">
-              <h3>${item.name}</h3>
-              <p>₪${item.price}</p>
-              <button onclick="addToCart('${item.name}', ${item.price})">➕ أضف إلى السلة</button>
-            `;
-            container.appendChild(card);
-          });
-        });
-      }
-    });
+  // توليد الوجبات تلقائيًا
+  const meals = [
+    { name: "برجر", price: "22₪", image: "https://cdn.pixabay.com/photo/2021/05/10/18/15/hamburger-6242604_960_720.jpg" },
+    { name: "شنيتسل", price: "22₪", image: "https://cdn.pixabay.com/photo/2021/01/23/20/01/chicken-5943392_960_720.jpg" },
+    { name: "شاورما", price: "20₪", image: "https://cdn.pixabay.com/photo/2019/09/15/19/09/food-4477497_960_720.jpg" },
+    { name: "صدر دجاج", price: "24₪", image: "https://cdn.pixabay.com/photo/2020/03/02/13/50/grilled-chicken-4894386_960_720.jpg" },
+    { name: "توست", price: "18₪", image: "https://cdn.pixabay.com/photo/2017/07/16/10/43/toast-2505279_960_720.jpg" },
+    { name: "نقنيق", price: "17₪", image: "https://cdn.pixabay.com/photo/2016/12/26/17/28/sausages-1936632_960_720.jpg" }
+  ];
 
-    setTimeout(() => {
-      if (!authResolved) {
-        alert("حدثت مشكلة في تسجيل الدخول، أعد المحاولة.");
-        window.location.href = "index.html";
-      }
-    }, 3000);
+  const menuContainer = document.getElementById("menu-list");
 
-    window.addToCart = function(name, price) {
-      const user = auth.currentUser;
-      if (!user) return alert("يرجى تسجيل الدخول أولاً.");
-      const itemRef = ref(db, `carts/${user.uid}/${Date.now()}`);
-      set(itemRef, { name, price }).then(() => alert("✅ تمت الإضافة إلى السلة!"));
-    };
-  </script>
+  meals.forEach(meal => {
+    const card = document.createElement("div");
+    card.className = "meal-card";
+    card.innerHTML = `
+      <img src="${meal.image}" alt="${meal.name}">
+      <h3>${meal.name}</h3>
+      <p>السعر: ${meal.price}</p>
+      <button class="add-btn">أضف إلى السلة +</button>
+    `;
+    menuContainer.appendChild(card);
+  });
+</script>
+
 </body>
 </html>
