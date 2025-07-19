@@ -1,92 +1,187 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>السلة</title>
-  <style>
-    body {
-      font-family: Arial;
-      direction: rtl;
-      text-align: center;
-      background-color: #f4f4f4;
-    }
-    .cart-item {
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin: 10px auto;
-      padding: 10px;
-      width: 300px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .back-button {
-      margin-top: 20px;
-      display: inline-block;
-      background-color: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>سلة الطلبات</title>
+    <style>
+        body {
+            font-family: Arial;
+            direction: rtl;
+            background-color: #f4f4f4;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .cart-item, .order-box {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin: 15px auto;
+            padding: 15px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        textarea {
+            width: 90%;
+            resize: none;
+            margin-top: 10px;
+        }
+
+        button {
+            margin: 10px 5px;
+            padding: 8px 16px;
+        }
+
+        .delete-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            float: left;
+        }
+    </style>
 </head>
 <body>
-  <h1>🛒 سلة المشتريات</h1>
-  <div id="cartList"></div>
-  <a class="back-button" href="menu.html">⬅️ الرجوع لقائمة الطعام</a>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    <h2>🛒 سلة الطلبات</h2>
+    <div id="cartList"></div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6VP1Jg3YmP_7KYDqyi39MrffUsEFZV0o",
-      authDomain: "chatgpt1-2c999.firebaseapp.com",
-      projectId: "chatgpt1-2c999",
-      storageBucket: "chatgpt1-2c999.appspot.com",
-      messagingSenderId: "1084542882267",
-      appId: "1:1084542882267:web:ca47011ec6ed6783cdb446",
-      databaseURL: "https://chatgpt1-2c999-default-rtdb.firebaseio.com/"
-    };
+    <label>🕒 وقت الاستلام:</label><br>
+    <input type="time" id="pickupTime"><br><br>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-    const cartList = document.getElementById("cartList");
+    <button onclick="submitOrder()">✅ إرسال الطلب</button>
+    <button onclick="goBack()">⬅️ رجوع إلى المنيو</button>
 
-    let authResolved = false;
+    <div id="status"></div>
 
-    onAuthStateChanged(auth, (user) => {
-      authResolved = true;
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        const cartRef = ref(db, "carts/" + user.uid);
-        onValue(cartRef, (snapshot) => {
-          cartList.innerHTML = "";
-          let total = 0;
-          snapshot.forEach((child) => {
-            const item = child.val();
-            total += item.price;
-            cartList.innerHTML += `
+    <div id="currentOrderBox" class="order-box" style="display:none;">
+        <h3>📦 طلبك الحالي</h3>
+        <div id="currentOrderDetails">🔄 جاري التحميل...</div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+            authDomain: "cafeteria-students-app.firebaseapp.com",
+            databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "cafeteria-students-app",
+            storageBucket: "cafeteria-students-app.appspot.com",
+            messagingSenderId: "338557210649",
+            appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let order = JSON.parse(localStorage.getItem("order")) || {};
+        let cart = order.cart || [];
+
+        function updateCartView() {
+            const cartDiv = document.getElementById("cartList");
+            cartDiv.innerHTML = "";
+            cart.forEach((item, i) => {
+                cartDiv.innerHTML += `
               <div class="cart-item">
-                <h3>${item.name}</h3>
-                <p>₪${item.price}</p>
+                <button class="delete-btn" onclick="removeItem(${i})">حذف</button>
+                <b>${item.name}</b> - ₪${item.price}<br>
+                <textarea placeholder="ملاحظات" oninput="updateNote(${i}, this.value)">${item.note || ""}</textarea>
               </div>
             `;
-          });
-          cartList.innerHTML += `<h2>الإجمالي: ₪${total}</h2>`;
-        });
-      }
-    });
+            });
+            if (order.pickupTime) document.getElementById("pickupTime").value = order.pickupTime;
+        }
 
-    setTimeout(() => {
-      if (!authResolved) {
-        alert("حدثت مشكلة في تسجيل الدخول.");
-        window.location.href = "index.html";
-      }
-    }, 3000);
-  </script>
+        function updateNote(index, note) {
+            cart[index].note = note;
+            order.cart = cart;
+            localStorage.setItem("order", JSON.stringify(order));
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            order.cart = cart;
+            localStorage.setItem("order", JSON.stringify(order));
+            updateCartView();
+        }
+
+        function submitOrder() {
+            const time = document.getElementById("pickupTime").value;
+            if (!time || cart.length === 0) {
+                document.getElementById("status").innerHTML = `<span style="color: red;">❗ أضف طلبات ووقت استلام.</span>`;
+                return;
+            }
+
+            firebase.auth().onAuthStateChanged(user => {
+                if (!user) return alert("يرجى تسجيل الدخول");
+
+                const total = cart.reduce((sum, item) => sum + item.price, 0);
+                const orderCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+                const fullOrder = {
+                    items: cart,
+                    pickupTime: time,
+                    total: total,
+                    timestamp: new Date().toLocaleString("en-US"),
+                    userId: user.uid,
+                    status: "قيد المعالجة",
+                    code: orderCode
+                };
+
+                const ordersRef = db.ref("orders").push();
+                ordersRef.set(fullOrder, (error) => {
+                    if (error) {
+                        document.getElementById("status").innerHTML = `<div style="color: red;">❌ خطأ في إرسال الطلب.</div>`;
+                    } else {
+                        document.getElementById("status").innerHTML = `
+                  <div style="background:#d4edda; color:#155724; padding:10px; border-radius:10px;">
+                    ✅ تم إرسال الطلب!<br><b>رقم الطلبية:</b> ${orderCode}
+                  </div>`;
+                        localStorage.removeItem("order");
+                        cart = [];
+                        updateCartView();
+                    }
+                });
+            });
+        }
+
+        function goBack() {
+            window.location.href = "menu.html";
+        }
+
+        updateCartView();
+
+        // ✅ تتبع تلقائي للطلب الحالي
+        function startTrackingLatestOrder() {
+            firebase.auth().onAuthStateChanged(currentUser => {
+                if (!currentUser) return;
+                const ordersRef = firebase.database().ref("orders");
+                ordersRef.orderByChild("userId").equalTo(currentUser.uid).limitToLast(1).on("value", snapshot => {
+                    if (!snapshot.exists()) return;
+                    document.getElementById("currentOrderBox").style.display = "block";
+                    snapshot.forEach(child => {
+                        const order = child.val();
+                        const code = order.code || child.key.slice(-6).toUpperCase();
+                        const itemsList = order.items?.map(item => `<li>${item.name} - ₪${item.price}</li>`).join("") || "";
+                        document.getElementById("currentOrderDetails").innerHTML = `
+                  <p><b>رقم الطلبية:</b> ${code}</p>
+                  <p><b>الحالة:</b> <span style="color:blue;">${order.status || "قيد المعالجة"}</span></p>
+                  <p><b>وقت الاستلام:</b> ${order.pickupTime}</p>
+                  <p><b>المجموع:</b> ₪${order.total}</p>
+                  <ul>${itemsList}</ul>
+                `;
+                    });
+                });
+            });
+        }
+
+        startTrackingLatestOrder();
+    </script>
 </body>
 </html>
