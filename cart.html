@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
-<head>
+<headِ>
   <meta charset="UTF-8" />
   <title>سلة الطلبات</title>
   <style>
@@ -60,11 +60,7 @@
 </head>
 <body>
 
-  <h2>📦 سلة الطلبات / الطلبات الحالية</h2>
-
-  <label>👤 أدخل اسم الطالب لعرض الطلبات الحالية:
-    <input type="text" id="studentSearchName" oninput="loadActiveOrders()" />
-  </label>
+  <h2>📦 سلة الطلبات</h2>
 
   <div id="cartContainer"></div>
 
@@ -162,39 +158,6 @@
           const newStatus = child.val().status;
           document.getElementById("liveStatus").innerText = newStatus;
         });
-      });
-    }
-
-    function loadActiveOrders() {
-      const name = document.getElementById("studentSearchName").value.trim();
-      if (!name) return;
-
-      db.ref("orders").orderByChild("studentName").equalTo(name).once("value", snapshot => {
-        const container = document.getElementById("cartContainer");
-        container.innerHTML = "";
-        let found = false;
-
-        snapshot.forEach(child => {
-          const order = child.val();
-          if (["قيد المعالجة", "جاهز"].includes(order.status)) {
-            found = true;
-            const div = document.createElement("div");
-            div.className = "order-card";
-            div.innerHTML = `
-              <p><strong>رقم الطلب:</strong> ${order.code}</p>
-              <p><strong>الحالة:</strong> ${order.status}</p>
-              <p><strong>الاستلام:</strong> ${order.pickupTime}</p>
-              <ul>${order.items.map(i => `<li>${i.name} - ₪${i.price}${i.extras?.length ? " (إضافات: " + i.extras.join(", ") + ")" : ""}</li>`).join("")}</ul>
-              <p><strong>الملاحظات:</strong> ${order.notes || "لا يوجد"}</p>
-              <p><strong>المجموع:</strong> ₪${order.total}</p>
-            `;
-            container.appendChild(div);
-          }
-        });
-
-        if (!found) {
-          container.innerHTML = "<p>🚫 لا توجد طلبات حالية بهذا الاسم.</p>";
-        }
       });
     }
   </script>
