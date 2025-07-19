@@ -27,9 +27,10 @@
       border: 1px solid #dee2e6;
       border-radius: 12px;
       margin: 15px;
-      width: 240px;
+      width: 260px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease;
+      padding-bottom: 10px;
     }
 
     .meal-card:hover {
@@ -61,12 +62,22 @@
       padding: 8px 16px;
       border-radius: 5px;
       cursor: pointer;
-      margin-bottom: 10px;
-      transition: background-color 0.3s;
+      margin-top: 10px;
     }
 
     .meal-card button:hover {
       background-color: #157347;
+    }
+
+    .extras {
+      text-align: right;
+      padding: 0 15px;
+    }
+
+    .extras label {
+      display: block;
+      font-size: 14px;
+      margin: 2px 0;
     }
 
     .link {
@@ -87,83 +98,51 @@
 
   <script>
     const meals = [
-      {
-        name: "شاورما",
-        price: 20,
-        img: "https://images.unsplash.com/photo-1604908177221-6b433a3c2c58?w=400&h=300&fit=crop"
-      },
-      {
-        name: "صدر دجاج",
-        price: 23,
-        img: "https://images.unsplash.com/photo-1562967916-eb82221dfb36?w=400&h=300&fit=crop"
-      },
-      {
-        name: "برجر",
-        price: 22,
-        img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop"
-      },
-      {
-        name: "شنيتسل",
-        price: 21,
-        img: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=400&h=300&fit=crop"
-      },
-      {
-        name: "نقنيق",
-        price: 19,
-        img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&h=300&fit=crop"
-      },
-      {
-        name: "توست",
-        price: 14,
-        img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop"
-      },
-      {
-        name: "اكس ال",
-        price: 8,
-        img: "https://images.unsplash.com/photo-1614714843309-9137b9f1c279?w=400&h=300&fit=crop"
-      },
-      {
-        name: "كولا زيرو",
-        price: 6,
-        img: "https://images.unsplash.com/photo-1604849911323-9609a1af5c92?w=400&h=300&fit=crop"
-      },
-      {
-        name: "كولا",
-        price: 6,
-        img: "https://images.unsplash.com/photo-1588854337221-4a2bb5b4dc7f?w=400&h=300&fit=crop"
-      },
-      {
-        name: "صودا",
-        price: 5,
-        img: "https://images.unsplash.com/photo-1598188303189-ec2ee8c75fc0?w=400&h=300&fit=crop"
-      },
-      {
-        name: "عصير",
-        price: 7,
-        img: "https://images.unsplash.com/photo-1572441710560-389d7dd95fdf?w=400&h=300&fit=crop"
-      },
-      {
-        name: "ماء",
-        price: 3,
-        img: "https://images.unsplash.com/photo-1611212243263-1ef7a80c73dc?w=400&h=300&fit=crop"
-      }
+      { name: "شاورما", price: 20, img: "https://images.unsplash.com/photo-1604908177221-6b433a3c2c58?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "صدر دجاج", price: 23, img: "https://images.unsplash.com/photo-1562967916-eb82221dfb36?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "برجر", price: 22, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "شنيتسل", price: 21, img: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "نقنيق", price: 19, img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "توست", price: 14, img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "اكس ال", price: 8, img: "https://images.unsplash.com/photo-1614714843309-9137b9f1c279?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "كولا زيرو", price: 6, img: "https://images.unsplash.com/photo-1604849911323-9609a1af5c92?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "كولا", price: 6, img: "https://images.unsplash.com/photo-1588854337221-4a2bb5b4dc7f?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "صودا", price: 5, img: "https://images.unsplash.com/photo-1598188303189-ec2ee8c75fc0?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "عصير", price: 7, img: "https://images.unsplash.com/photo-1572441710560-389d7dd95fdf?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "ماء", price: 3, img: "https://images.unsplash.com/photo-1611212243263-1ef7a80c73dc?w=400&h=300&fit=crop", hasExtras: false }
     ];
 
-    function addToCart(name, price) {
+    function addToCart(name, price, index) {
+      const extras = [];
+      const checkboxes = document.querySelectorAll(`#extras-${index} input:checked`);
+      checkboxes.forEach(cb => extras.push(cb.value));
+
       let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
-      order.cart.push({ name: name, price: price });
+      order.cart.push({ name: name, price: price, extras: extras });
       localStorage.setItem("order", JSON.stringify(order));
-      alert("✅ تم إضافة " + name + " إلى السلة");
+
+      alert("✅ تم إضافة " + name + " إلى السلة" + (extras.length > 0 ? " مع إضافات: " + extras.join(", ") : ""));
     }
 
     const container = document.getElementById("menuList");
-    meals.forEach(meal => {
+
+    meals.forEach((meal, index) => {
       container.innerHTML += `
         <div class="meal-card">
           <img src="${meal.img}" alt="${meal.name}">
           <h3>${meal.name}</h3>
           <p>السعر: ₪${meal.price}</p>
-          <button onclick="addToCart('${meal.name}', ${meal.price})">➕ أضف إلى السلة</button>
+          ${meal.hasExtras ? `
+            <div class="extras" id="extras-${index}">
+              <label><input type="checkbox" value="خس"> خس</label>
+              <label><input type="checkbox" value="بندورة"> بندورة</label>
+              <label><input type="checkbox" value="بصل"> بصل</label>
+              <label><input type="checkbox" value="سلطة عربية"> سلطة عربية</label>
+              <label><input type="checkbox" value="كتشوب"> كتشوب</label>
+              <label><input type="checkbox" value="مايونيز"> مايونيز</label>
+            </div>
+          ` : ""}
+          <button onclick="addToCart('${meal.name}', ${meal.price}, ${index})">➕ أضف إلى السلة</button>
         </div>
       `;
     });
