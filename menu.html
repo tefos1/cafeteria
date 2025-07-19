@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>🛒 سلة الطلبات</title>
+  <title>قائمة الطعام</title>
   <style>
     body {
       font-family: Arial;
@@ -12,84 +12,153 @@
       padding: 20px;
     }
 
-    .back-button {
-      background-color: #007bff;
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      cursor: pointer;
-      font-size: 16px;
+    .menu-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
-    .cart-container {
-      max-width: 700px;
-      margin: auto;
+    .meal-card, .drink-card {
       background-color: #fff;
+      border: 1px solid #ddd;
       border-radius: 10px;
-      padding: 20px;
+      margin: 10px;
+      width: 250px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       text-align: right;
     }
 
-    .cart-item {
-      border-bottom: 1px solid #ddd;
-      padding: 10px 0;
+    .meal-card img, .drink-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
     }
 
-    .cart-item:last-child {
-      border-bottom: none;
+    .meal-card h3, .drink-card h3 {
+      margin: 10px;
     }
 
-    .total {
+    .meal-card p, .meal-card label,
+    .drink-card p, .drink-card button {
+      margin: 5px 10px;
+      display: block;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    .link {
       margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .empty {
-      color: gray;
+      display: block;
     }
   </style>
+
+  <!-- Firebase -->
+  <script type="module">
+    // import firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.addToCart = function(name, price, index) {
+      const additions = Array.from(document.querySelectorAll(`#additions-${index} input:checked`))
+                             .map(input => input.value);
+
+      const item = {
+        name,
+        price,
+        additions,
+        timestamp: Date.now()
+      };
+
+      push(ref(db, 'cart'), item)
+        .then(() => alert(`✅ تم إضافة ${name} إلى السلة`))
+        .catch(err => alert("حدث خطأ: " + err.message));
+    };
+  </script>
 </head>
 <body>
 
-  <button class="back-button" onclick="location.href='menu.html'">⬅️ رجوع إلى قائمة الطعام</button>
+  <h1>🍽️ قائمة الطعام</h1>
+  <div class="menu-container" id="menuList"></div>
 
-  <h1>🛒 سلة الطلبات</h1>
-  <div class="cart-container" id="cartContainer">
-    <p class="empty">📭 لا توجد عناصر في السلة.</p>
-  </div>
-  <div class="total" id="totalPrice"></div>
+  <h2>🥤 المشروبات</h2>
+  <div class="menu-container" id="drinksList"></div>
+
+  <a href="cart.html" class="link">➡️ الانتقال إلى السلة</a>
 
   <script>
-    async function fetchCartItems() {
-      const orderData = JSON.parse(localStorage.getItem("order")) || { cart: [] };
-      const container = document.getElementById("cartContainer");
-      const totalPriceElem = document.getElementById("totalPrice");
+    const additions = ["خس", "طماطم", "بصل", "مايونيز", "كيتشوب"];
 
-      if (orderData.cart.length === 0) {
-        container.innerHTML = '<p class="empty">📭 لا توجد عناصر في السلة.</p>';
-        totalPriceElem.textContent = '';
-        return;
-      }
+    const meals = [
+      { name: "شاورما", price: 20, img: "https://via.placeholder.com/250x150?text=شاورما" },
+      { name: "شنيتسل", price: 22, img: "https://via.placeholder.com/250x150?text=شنيتسل" },
+      { name: "برغر", price: 25, img: "https://via.placeholder.com/250x150?text=برغر" },
+      { name: "صدر دجاج", price: 23, img: "https://via.placeholder.com/250x150?text=صدر+دجاج" },
+      { name: "توست", price: 15, img: "https://via.placeholder.com/250x150?text=توست" },
+      { name: "نقنيق", price: 18, img: "https://via.placeholder.com/250x150?text=نقنيق" }
+    ];
 
-      let total = 0;
-      container.innerHTML = '';
+    const drinks = [
+      { name: "اكس ال", price: 7 },
+      { name: "كولا", price: 5 },
+      { name: "كولا زيرو", price: 5 },
+      { name: "ماء", price: 3 },
+      { name: "صودا", price: 4 },
+      { name: "عصير", price: 6 }
+    ];
 
-      orderData.cart.forEach(item => {
-        total += item.price;
-        const itemDiv = document.createElement("div");
-        itemDiv.className = "cart-item";
-        itemDiv.textContent = `${item.name} - ₪${item.price}`;
-        container.appendChild(itemDiv);
-      });
+    const menuList = document.getElementById("menuList");
+    meals.forEach((meal, i) => {
+      const additionsHTML = additions.map(add => `
+        <label><input type="checkbox" value="${add}"> ${add}</label>
+      `).join("");
 
-      totalPriceElem.textContent = `💰 المجموع الكلي: ₪${total}`;
-    }
+      menuList.innerHTML += `
+        <div class="meal-card">
+          <img src="${meal.img}" alt="${meal.name}">
+          <h3>${meal.name}</h3>
+          <p>السعر: ₪${meal.price}</p>
+          <div id="additions-${i}">
+            <p>➕ إختر الإضافات:</p>
+            ${additionsHTML}
+          </div>
+          <button onclick="addToCart('${meal.name}', ${meal.price}, ${i})">➕ أضف إلى السلة</button>
+        </div>
+      `;
+    });
 
-    fetchCartItems();
+    const drinksList = document.getElementById("drinksList");
+    drinks.forEach(drink => {
+      drinksList.innerHTML += `
+        <div class="drink-card">
+          <h3>${drink.name}</h3>
+          <p>السعر: ₪${drink.price}</p>
+          <button onclick="addToCart('${drink.name}', ${drink.price}, -1)">➕ أضف إلى السلة</button>
+        </div>
+      `;
+    });
   </script>
 
 </body>
