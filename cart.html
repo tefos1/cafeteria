@@ -11,11 +11,9 @@
       text-align: center;
       padding: 20px;
     }
-
     h2 {
       color: #0d6efd;
     }
-
     .order-card {
       background-color: #fff;
       border: 1px solid #ddd;
@@ -27,47 +25,10 @@
       text-align: right;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     .order-card p {
       margin: 5px 0;
       font-size: 16px;
     }
-
-    .order-card button {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .order-card button:hover {
-      background-color: #bb2d3b;
-    }
-
-    .back-button {
-      margin-top: 25px;
-      display: inline-block;
-      background-color: #198754;
-      color: white;
-      padding: 10px 18px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 16px;
-    }
-
-    .back-button:hover {
-      background-color: #157347;
-    }
-
-    ul {
-      padding-right: 20px;
-      font-size: 15px;
-      color: #555;
-    }
-
     .summary {
       background-color: #e9ecef;
       border-radius: 8px;
@@ -79,7 +40,6 @@
       margin-left: auto;
       margin-right: auto;
     }
-
     #sendBtn {
       background-color: #0d6efd;
       color: white;
@@ -90,63 +50,46 @@
       cursor: pointer;
       margin-top: 15px;
     }
-
-    #sendBtn:hover {
-      background-color: #0b5ed7;
-    }
-
-    #pickupInput {
+    input {
       font-size: 16px;
       padding: 6px;
-      margin-top: 10px;
-      margin-bottom: 10px;
+      margin: 6px 0;
       border-radius: 5px;
     }
-
-    #statusView {
+    .back-to-menu {
+      display: inline-block;
       margin-top: 20px;
-      font-size: 18px;
-      color: #0d6efd;
-    }
-
-    #myOrdersContainer {
-      margin-top: 25px;
-    }
-
-    .my-orders-btn {
-      background-color: #6c757d;
+      padding: 10px 16px;
+      background-color: #198754;
       color: white;
-      padding: 10px 20px;
-      border: none;
+      text-decoration: none;
       border-radius: 6px;
       font-size: 16px;
-      cursor: pointer;
+    }
+    .back-to-menu:hover {
+      background-color: #146c43;
     }
   </style>
 </head>
 <body>
 
-  <h2>📦 طلباتك الحالية</h2>
+  <h2>📦 سلة الطلبات</h2>
+
   <div id="cartContainer"></div>
 
   <div class="summary" id="orderSummary" style="display:none;">
-    <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput" required></label>
-    <p><strong>💰 المجموع النهائي:</strong> ₪<span id="totalAmount">0</span></p>
-    <button id="sendBtn" onclick="confirmOrder()">📤 إرسال الطلب</button>
+    <label>👤 اسم الطالب: <input type="text" id="studentName" required></label><br>
+    <label>📝 ملاحظات: <input type="text" id="noteInput"></label><br>
+    <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput"></label><br>
+    <button id="sendBtn" onclick="confirmOrder()">🚀 إرسال الطلب</button>
   </div>
 
-  <div id="statusView" style="display:none;"></div>
+  <div id="statusView"></div>
 
-  <div style="margin-top: 30px;">
-    <button onclick="showMyOrders()" class="my-orders-btn">📄 عرض طلباتي الحالية</button>
-  </div>
+  <a href="menu.html" class="back-to-menu">⬅️ الرجوع لقائمة الطعام</a>
 
-  <div id="myOrdersContainer"></div>
-
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
@@ -157,145 +100,81 @@
       messagingSenderId: "338557210649",
       appId: "1:338557210649:web:ba36c4623b4677ca585a88"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const cartContainer = document.getElementById("cartContainer");
-    let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+    const orderSummary = document.getElementById("orderSummary");
 
-    function displayCart() {
-      cartContainer.innerHTML = "";
+    const order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+
+    if (order.cart.length > 0) {
       let total = 0;
-
-      if (order.cart.length === 0) {
-        cartContainer.innerHTML = "<p>السلة فارغة 🛒</p>";
-        document.getElementById("orderSummary").style.display = "none";
-        return;
-      }
-
-      order.cart.forEach((item, index) => {
+      order.cart.forEach((item, i) => {
         total += item.price;
-        let extrasList = "";
-        if (item.extras && item.extras.length > 0) {
-          extrasList = "<ul>";
-          item.extras.forEach(extra => {
-            extrasList += `<li>➕ ${extra}</li>`;
-          });
-          extrasList += "</ul>";
-        }
-
-        cartContainer.innerHTML += `
-          <div class="order-card">
-            <p><strong>🍽️ الوجبة:</strong> ${item.name}</p>
-            <p><strong>💸 السعر:</strong> ₪${item.price}</p>
-            ${extrasList}
-            <button onclick="removeItem(${index})">🗑️ حذف الطلب</button>
-          </div>
+        const div = document.createElement("div");
+        div.className = "order-card";
+        div.innerHTML = `
+          <p><strong>الوجبة:</strong> ${item.name}</p>
+          <p><strong>السعر:</strong> ₪${item.price}</p>
+          ${item.extras?.length ? `<p><strong>الإضافات:</strong> ${item.extras.join(", ")}</p>` : ""}
+          <button onclick="removeItem(${i})">🗑 إزالة</button>
         `;
+        cartContainer.appendChild(div);
       });
-
-      document.getElementById("totalAmount").textContent = total;
-      document.getElementById("orderSummary").style.display = "block";
+      orderSummary.style.display = "block";
     }
 
     function removeItem(index) {
       order.cart.splice(index, 1);
       localStorage.setItem("order", JSON.stringify(order));
-      displayCart();
+      location.reload();
     }
 
     function confirmOrder() {
       const timeValue = document.getElementById("pickupInput").value;
-      if (!timeValue) return alert("❗ الرجاء اختيار ساعة استلام الطلب.");
+      const nameValue = document.getElementById("studentName").value.trim();
+      const note = document.getElementById("noteInput").value;
 
-      const items = order.cart.map(item => ({
-        name: item.name,
-        price: item.price,
-        note: item.extras?.join(", ") || ""
-      }));
+      if (!timeValue || !nameValue) return alert("⚠️ الرجاء تعبئة جميع الحقول.");
 
-      const total = items.reduce((sum, i) => sum + i.price, 0);
-      const orderCode = Math.floor(100000 + Math.random() * 900000).toString(); // 🔢 رقم طلب أرقام فقط
+      const orderCode = Math.floor(100000 + Math.random() * 900000);
 
       const newOrder = {
         code: orderCode,
-        items: items,
+        studentName: nameValue,
+        items: order.cart,
         pickupTime: timeValue,
-        total: total,
-        status: "قيد المعالجة",
-        notes: ""
+        notes: note,
+        total: order.cart.reduce((sum, item) => sum + item.price, 0),
+        status: "قيد المعالجة"
       };
 
-      db.ref("orders").push(newOrder).then(ref => {
-        alert("✅ تم إرسال الطلب!\nرقم الطلب: " + orderCode);
+      firebase.database().ref("orders").push(newOrder).then(() => {
         localStorage.removeItem("order");
-        document.getElementById("orderSummary").style.display = "none";
-        document.getElementById("cartContainer").innerHTML = "";
-        showStatusTracking(ref.key);
-      }).catch(err => alert("❌ فشل الإرسال: " + err));
+        showStatusTracking(newOrder);
+      });
     }
 
-    function showStatusTracking(orderKey) {
+    function showStatusTracking(data) {
       const statusView = document.getElementById("statusView");
-      statusView.style.display = "block";
-      statusView.innerHTML = "📦 جاري تتبع حالة الطلب...";
-
-      db.ref("orders/" + orderKey).on("value", snapshot => {
-        const data = snapshot.val();
-        if (data) {
-          statusView.innerHTML = `
-            ✅ <strong>رقم الطلب:</strong> ${data.code}<br>
-            🔁 <strong>الحالة الحالية:</strong> ${data.status || "قيد المعالجة"}
-            <br><br><a href="cart.html" class="back-button">🔙 الرجوع للسلة</a>
-          `;
-        } else {
-          statusView.innerHTML = "🚫 تم حذف الطلب أو انتهت صلاحيته.";
-        }
-      });
+      statusView.innerHTML = `
+        ✅ <strong>رقم الطلب:</strong> ${data.code}<br>
+        🔁 <strong>الحالة الحالية:</strong> <span id="liveStatus">${data.status}</span>
+      `;
+      trackLiveStatus(data.code);
+      document.getElementById("orderSummary").style.display = "none";
+      cartContainer.innerHTML = "";
     }
 
-    function showMyOrders() {
-      const container = document.getElementById("myOrdersContainer");
-      container.innerHTML = "🔄 جاري تحميل طلباتك...";
-
-      db.ref("orders").once("value").then(snapshot => {
-        container.innerHTML = "";
-        let found = false;
-
+    function trackLiveStatus(code) {
+      db.ref("orders").orderByChild("code").equalTo(code).on("value", snapshot => {
         snapshot.forEach(child => {
-          const order = child.val();
-          const id = child.key;
-
-          if (order.code) {
-            found = true;
-            const listItems = order.items?.map(item =>
-              `<li>${item.name} - ₪${item.price}${item.note ? " (ملاحظات: " + item.note + ")" : ""}</li>`
-            ).join("");
-
-            const card = document.createElement("div");
-            card.className = "order-card";
-            card.innerHTML = `
-              <h3>🧾 رقم الطلب: ${order.code}</h3>
-              <p><strong>⏰ وقت الاستلام:</strong> ${order.pickupTime}</p>
-              <p><strong>💰 المجموع:</strong> ₪${order.total}</p>
-              <p><strong>🔄 الحالة:</strong> ${order.status || "قيد المعالجة"}</p>
-              <ul>${listItems}</ul>
-            `;
-            container.appendChild(card);
-          }
+          const newStatus = child.val().status;
+          document.getElementById("liveStatus").innerText = newStatus;
         });
-
-        if (!found) {
-          container.innerHTML = "<p>🚫 لا توجد طلبات حالية.</p>";
-        }
-      }).catch(err => {
-        container.innerHTML = "❌ فشل تحميل الطلبات: " + err;
       });
     }
-
-    displayCart();
   </script>
-
 </body>
 </html>
