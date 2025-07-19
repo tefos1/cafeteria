@@ -84,7 +84,6 @@
   <div id="cartContainer"></div>
 
   <div class="summary" id="orderSummary" style="display:none;">
-    <label>👤 اسم الطالب: <input type="text" id="studentName" required></label><br>
     <label>📝 ملاحظات: <input type="text" id="noteInput"></label><br>
     <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput"></label><br>
     <button id="sendBtn" onclick="confirmOrder()">🚀 إرسال الطلب</button>
@@ -140,16 +139,14 @@
 
     function confirmOrder() {
       const timeValue = document.getElementById("pickupInput").value;
-      const nameValue = document.getElementById("studentName").value.trim();
       const note = document.getElementById("noteInput").value;
 
-      if (!timeValue || !nameValue) return alert("⚠️ الرجاء تعبئة جميع الحقول.");
+      if (!timeValue) return alert("⚠️ الرجاء اختيار ساعة الاستلام.");
 
       const orderCode = Math.floor(100000 + Math.random() * 900000);
 
       const newOrder = {
         code: orderCode,
-        studentName: nameValue,
         items: order.cart,
         pickupTime: timeValue,
         notes: note,
