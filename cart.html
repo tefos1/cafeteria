@@ -119,8 +119,7 @@
             }
 
             firebase.auth().onAuthStateChanged(user => {
-                if (!user) return alert("يرجى تسجيل الدخول");
-
+                
                 const total = cart.reduce((sum, item) => sum + item.price, 0);
                 const orderCode = Math.floor(100000 + Math.random() * 900000).toString();
 
