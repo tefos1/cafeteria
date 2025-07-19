@@ -1,237 +1,300 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>قائمة الطعام</title>
+  <meta charset="UTF-8" />
+  <title>سلة الطلبات</title>
   <style>
     body {
       font-family: Arial;
       direction: rtl;
+      background-color: #f4f4f4;
       text-align: center;
-      background-color: #f8f9fa;
+      padding: 20px;
     }
 
-    h1 {
-      color: #d63384;
-      margin-top: 30px;
+    h2 {
+      color: #0d6efd;
     }
 
-    .menu-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+    .order-card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin: 15px auto;
+      padding: 15px;
+      width: 90%;
+      max-width: 600px;
+      text-align: right;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
-    .meal-card {
-      background-color: #ffffff;
-      border: 1px solid #dee2e6;
-      border-radius: 12px;
-      margin: 15px;
-      width: 260px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease;
-      padding-bottom: 10px;
+    .order-card p {
+      margin: 5px 0;
+      font-size: 16px;
     }
 
-    .meal-card:hover {
-      transform: scale(1.03);
-    }
-
-    .meal-card img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-    }
-
-    .meal-card h3 {
-      margin: 10px 0 5px 0;
-      color: #343a40;
-    }
-
-    .meal-card p {
-      margin: 5px;
-      color: #495057;
-    }
-
-    .meal-card button {
-      background-color: #198754;
+    .order-card button {
+      background-color: #dc3545;
       color: white;
       border: none;
-      padding: 8px 16px;
+      padding: 6px 12px;
       border-radius: 5px;
       cursor: pointer;
-      margin-top: 10px;
+      font-size: 14px;
     }
 
-    .meal-card button:hover {
+    .order-card button:hover {
+      background-color: #bb2d3b;
+    }
+
+    .back-button {
+      margin-top: 25px;
+      display: inline-block;
+      background-color: #198754;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .back-button:hover {
       background-color: #157347;
     }
 
-    .link {
-      margin: 30px;
-      display: inline-block;
-      text-decoration: none;
-      color: #0d6efd;
-      font-size: 18px;
-    }
-
-    /* Modal Style */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.6);
-    }
-
-    .modal-content {
-      background-color: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      text-align: right;
-    }
-
-    .modal h3 {
-      margin-bottom: 10px;
-      color: #dc3545;
-    }
-
-    .modal .extras label {
-      display: block;
+    ul {
+      padding-right: 20px;
       font-size: 15px;
-      margin: 6px 0;
+      color: #555;
     }
 
-    .modal button {
+    .summary {
+      background-color: #e9ecef;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      text-align: right;
+      width: 90%;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #sendBtn {
+      background-color: #0d6efd;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
       margin-top: 15px;
+    }
+
+    #sendBtn:hover {
+      background-color: #0b5ed7;
+    }
+
+    #pickupInput {
+      font-size: 16px;
+      padding: 6px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+
+    #statusView {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #0d6efd;
+    }
+
+    #myOrdersContainer {
+      margin-top: 25px;
+    }
+
+    .my-orders-btn {
+      background-color: #6c757d;
+      color: white;
       padding: 10px 20px;
       border: none;
       border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
     }
-
-    .modal .add-btn {
-      background-color: #198754;
-      color: white;
-    }
-
-    .modal .close-btn {
-      background-color: #6c757d;
-      color: white;
-      float: left;
-    }
-
-    textarea {
-      width: 100%;
-      border-radius: 6px;
-      padding: 6px;
-      margin-top: 10px;
-      resize: none;
-      font-size: 14px;
-    }
   </style>
 </head>
 <body>
 
-  <h1>🍽️ قائمة الطعام</h1>
-  <div class="menu-container" id="menuList"></div>
+  <h2>📦 طلباتك الحالية</h2>
+  <div id="cartContainer"></div>
 
-  <a href="cart.html" class="link">➡️ الانتقال إلى السلة</a>
-
-  <!-- Modal -->
-  <div class="modal" id="extrasModal">
-    <div class="modal-content">
-      <h3 id="modalMealName"></h3>
-      <div id="extrasContainer"></div>
-      <textarea id="noteInput" placeholder="📝 ملاحظات إضافية (اختياري)"></textarea>
-      <button class="add-btn" onclick="confirmAddToCart()">✅ أضف للسلة</button>
-      <button class="close-btn" onclick="closeModal()">✖ إغلاق</button>
-    </div>
+  <div class="summary" id="orderSummary" style="display:none;">
+    <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput" required></label>
+    <p><strong>💰 المجموع النهائي:</strong> ₪<span id="totalAmount">0</span></p>
+    <button id="sendBtn" onclick="confirmOrder()">📤 إرسال الطلب</button>
   </div>
 
+  <div id="statusView" style="display:none;"></div>
+
+  <div style="margin-top: 30px;">
+    <button onclick="showMyOrders()" class="my-orders-btn">📄 عرض طلباتي الحالية</button>
+  </div>
+
+  <div id="myOrdersContainer"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
   <script>
-    const meals = [
-      { name: "شاورما", price: 20, img: "https://images.unsplash.com/photo-1604908177221-6b433a3c2c58?w=400&h=300&fit=crop", hasExtras: true },
-      { name: "صدر دجاج", price: 23, img: "https://images.unsplash.com/photo-1562967916-eb82221dfb36?w=400&h=300&fit=crop", hasExtras: true },
-      { name: "برجر", price: 22, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop", hasExtras: true },
-      { name: "شنيتسل", price: 21, img: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=400&h=300&fit=crop", hasExtras: true },
-      { name: "نقنيق", price: 19, img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&h=300&fit=crop", hasExtras: true },
-      { name: "توست", price: 14, img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop", hasExtras: true },
-      { name: "اكس ال", price: 8, img: "https://images.unsplash.com/photo-1614714843309-9137b9f1c279?w=400&h=300&fit=crop", hasExtras: false },
-      { name: "كولا زيرو", price: 6, img: "https://images.unsplash.com/photo-1604849911323-9609a1af5c92?w=400&h=300&fit=crop", hasExtras: false },
-      { name: "كولا", price: 6, img: "https://images.unsplash.com/photo-1588854337221-4a2bb5b4dc7f?w=400&h=300&fit=crop", hasExtras: false },
-      { name: "صودا", price: 5, img: "https://images.unsplash.com/photo-1598188303189-ec2ee8c75fc0?w=400&h=300&fit=crop", hasExtras: false },
-      { name: "عصير", price: 7, img: "https://images.unsplash.com/photo-1572441710560-389d7dd95fdf?w=400&h=300&fit=crop", hasExtras: false },
-      { name: "ماء", price: 3, img: "https://images.unsplash.com/photo-1611212243263-1ef7a80c73dc?w=400&h=300&fit=crop", hasExtras: false }
-    ];
+    const firebaseConfig = {
+      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+      authDomain: "cafeteria-students-app.firebaseapp.com",
+      databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "cafeteria-students-app",
+      storageBucket: "cafeteria-students-app.appspot.com",
+      messagingSenderId: "338557210649",
+      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+    };
 
-    let selectedMeal = null;
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    function openExtrasModal(meal) {
-      selectedMeal = meal;
-      document.getElementById("modalMealName").innerText = meal.name;
+    const cartContainer = document.getElementById("cartContainer");
+    let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
 
-      const container = document.getElementById("extrasContainer");
-      container.innerHTML = "";
+    function displayCart() {
+      cartContainer.innerHTML = "";
+      let total = 0;
 
-      if (meal.hasExtras) {
-        const options = ["خس", "بندورة", "بصل", "سلطة عربية", "كتشوب", "مايونيز"];
-        container.innerHTML = '<div class="extras">' + options.map(opt =>
-          `<label><input type="checkbox" value="${opt}"> ${opt}</label>`
-        ).join("") + '</div>';
-      } else {
-        container.innerHTML = "<p>لا توجد إضافات لهذه الوجبة.</p>";
+      if (order.cart.length === 0) {
+        cartContainer.innerHTML = "<p>السلة فارغة 🛒</p>";
+        document.getElementById("orderSummary").style.display = "none";
+        return;
       }
 
-      document.getElementById("noteInput").value = "";
-      document.getElementById("extrasModal").style.display = "block";
-    }
+      order.cart.forEach((item, index) => {
+        total += item.price;
+        let extrasList = "";
+        if (item.extras && item.extras.length > 0) {
+          extrasList = "<ul>";
+          item.extras.forEach(extra => {
+            extrasList += `<li>➕ ${extra}</li>`;
+          });
+          extrasList += "</ul>";
+        }
 
-    function closeModal() {
-      document.getElementById("extrasModal").style.display = "none";
-    }
-
-    function confirmAddToCart() {
-      const checkboxes = document.querySelectorAll("#extrasContainer input:checked");
-      const extras = Array.from(checkboxes).map(cb => cb.value);
-      const note = document.getElementById("noteInput").value;
-
-      let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
-      order.cart.push({
-        name: selectedMeal.name,
-        price: selectedMeal.price,
-        extras: extras,
-        note: note
+        cartContainer.innerHTML += `
+          <div class="order-card">
+            <p><strong>🍽️ الوجبة:</strong> ${item.name}</p>
+            <p><strong>💸 السعر:</strong> ₪${item.price}</p>
+            ${extrasList}
+            <button onclick="removeItem(${index})">🗑️ حذف الطلب</button>
+          </div>
+        `;
       });
 
-      localStorage.setItem("order", JSON.stringify(order));
-
-      alert(`✅ تم إضافة ${selectedMeal.name} إلى السلة${extras.length > 0 ? " مع: " + extras.join(", ") : ""}${note ? "\n📝 ملاحظة: " + note : ""}`);
-      closeModal();
+      document.getElementById("totalAmount").textContent = total;
+      document.getElementById("orderSummary").style.display = "block";
     }
 
-    const container = document.getElementById("menuList");
+    function removeItem(index) {
+      order.cart.splice(index, 1);
+      localStorage.setItem("order", JSON.stringify(order));
+      displayCart();
+    }
 
-    meals.forEach((meal) => {
-      container.innerHTML += `
-        <div class="meal-card">
-          <img src="${meal.img}" alt="${meal.name}">
-          <h3>${meal.name}</h3>
-          <p>السعر: ₪${meal.price}</p>
-          <button onclick='openExtrasModal(${JSON.stringify(meal)})'>➕ أضف إلى السلة</button>
-        </div>
-      `;
-    });
+    function confirmOrder() {
+      const timeValue = document.getElementById("pickupInput").value;
+      if (!timeValue) return alert("❗ الرجاء اختيار ساعة استلام الطلب.");
+
+      const items = order.cart.map(item => ({
+        name: item.name,
+        price: item.price,
+        note: item.extras?.join(", ") || ""
+      }));
+
+      const total = items.reduce((sum, i) => sum + i.price, 0);
+      const orderCode = Math.floor(100000 + Math.random() * 900000).toString(); // 🔢 رقم طلب أرقام فقط
+
+      const newOrder = {
+        code: orderCode,
+        items: items,
+        pickupTime: timeValue,
+        total: total,
+        status: "قيد المعالجة",
+        notes: ""
+      };
+
+      db.ref("orders").push(newOrder).then(ref => {
+        alert("✅ تم إرسال الطلب!\nرقم الطلب: " + orderCode);
+        localStorage.removeItem("order");
+        document.getElementById("orderSummary").style.display = "none";
+        document.getElementById("cartContainer").innerHTML = "";
+        showStatusTracking(ref.key);
+      }).catch(err => alert("❌ فشل الإرسال: " + err));
+    }
+
+    function showStatusTracking(orderKey) {
+      const statusView = document.getElementById("statusView");
+      statusView.style.display = "block";
+      statusView.innerHTML = "📦 جاري تتبع حالة الطلب...";
+
+      db.ref("orders/" + orderKey).on("value", snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          statusView.innerHTML = `
+            ✅ <strong>رقم الطلب:</strong> ${data.code}<br>
+            🔁 <strong>الحالة الحالية:</strong> ${data.status || "قيد المعالجة"}
+            <br><br><a href="cart.html" class="back-button">🔙 الرجوع للسلة</a>
+          `;
+        } else {
+          statusView.innerHTML = "🚫 تم حذف الطلب أو انتهت صلاحيته.";
+        }
+      });
+    }
+
+    function showMyOrders() {
+      const container = document.getElementById("myOrdersContainer");
+      container.innerHTML = "🔄 جاري تحميل طلباتك...";
+
+      db.ref("orders").once("value").then(snapshot => {
+        container.innerHTML = "";
+        let found = false;
+
+        snapshot.forEach(child => {
+          const order = child.val();
+          const id = child.key;
+
+          if (order.code) {
+            found = true;
+            const listItems = order.items?.map(item =>
+              `<li>${item.name} - ₪${item.price}${item.note ? " (ملاحظات: " + item.note + ")" : ""}</li>`
+            ).join("");
+
+            const card = document.createElement("div");
+            card.className = "order-card";
+            card.innerHTML = `
+              <h3>🧾 رقم الطلب: ${order.code}</h3>
+              <p><strong>⏰ وقت الاستلام:</strong> ${order.pickupTime}</p>
+              <p><strong>💰 المجموع:</strong> ₪${order.total}</p>
+              <p><strong>🔄 الحالة:</strong> ${order.status || "قيد المعالجة"}</p>
+              <ul>${listItems}</ul>
+            `;
+            container.appendChild(card);
+          }
+        });
+
+        if (!found) {
+          container.innerHTML = "<p>🚫 لا توجد طلبات حالية.</p>";
+        }
+      }).catch(err => {
+        container.innerHTML = "❌ فشل تحميل الطلبات: " + err;
+      });
+    }
+
+    displayCart();
   </script>
 
 </body>
