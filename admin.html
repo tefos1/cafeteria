@@ -29,13 +29,11 @@
     }
     .order-card select, .order-card button {
       margin-top: 10px;
-      padding: 5px 10px;
+      padding: 5px;
       border-radius: 5px;
-      font-size: 14px;
     }
     .order-card button {
       cursor: pointer;
-      margin-left: 5px;
     }
   </style>
 </head>
@@ -81,16 +79,17 @@
           <p><strong>📄 الحالة:</strong> ${order.status}</p>
           <ul>${itemsList}</ul>
           <label>تحديث الحالة:
-            <select id="statusSelect-${id}">
+            <select id="status-${id}">
               <option value="قيد المعالجة" ${order.status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
               <option value="قيد التحضير" ${order.status === "قيد التحضير" ? "selected" : ""}>قيد التحضير</option>
               <option value="جاهز" ${order.status === "جاهز" ? "selected" : ""}>جاهز</option>
               <option value="تم التسليم" ${order.status === "تم التسليم" ? "selected" : ""}>تم التسليم</option>
             </select>
-          </label><br>
+          </label>
+          <br>
           <button onclick="updateStatus('${id}')">✅ تحديث الحالة</button>
-          <button onclick="markDelivered('${id}')">📦 تم التسليم</button>
           <button onclick="deleteOrder('${id}')">🗑️ حذف</button>
+          <button onclick="markAsDelivered('${id}')">📦 تم التسليم</button>
         `;
 
         ordersContainer.appendChild(card);
@@ -98,18 +97,18 @@
     });
 
     function updateStatus(orderId) {
-      const newStatus = document.getElementById("statusSelect-" + orderId).value;
+      const newStatus = document.getElementById("status-" + orderId).value;
       db.ref("orders/" + orderId).update({ status: newStatus });
-    }
-
-    function markDelivered(orderId) {
-      db.ref("orders/" + orderId).update({ status: "تم التسليم" });
     }
 
     function deleteOrder(orderId) {
       if (confirm("هل أنت متأكد أنك تريد حذف هذا الطلب؟")) {
         db.ref("orders/" + orderId).remove();
       }
+    }
+
+    function markAsDelivered(orderId) {
+      db.ref("orders/" + orderId).remove();
     }
   </script>
 
