@@ -1,127 +1,116 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>قائمة الطعام</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      direction: rtl;
-      text-align: center;
-    }
+    <meta charset="UTF-8">
+    <title>قائمة الطعام</title>
+    <style>
+        body {
+            font-family: Arial;
+            direction: rtl;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
 
-    h2 {
-      margin-top: 30px;
-    }
+        .menu-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
-    .menu-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin: 30px auto;
-      gap: 20px;
-      max-width: 1200px;
-    }
+        .meal-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin: 10px;
+            width: 250px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
 
-    .meal-card {
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      width: 220px;
-      padding: 10px;
-    }
+            .meal-card img {
+                width: 100%;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+            }
 
-    .meal-card img {
-      width: 100%;
-      height: 150px;
-      border-radius: 8px;
-      object-fit: cover;
-    }
+            .meal-card h3 {
+                margin: 10px 0 5px 0;
+            }
 
-    .meal-card h3 {
-      margin: 10px 0 5px;
-    }
+            .meal-card p {
+                margin: 5px;
+            }
 
-    .meal-card p {
-      margin: 5px 0;
-    }
+            .meal-card button {
+                background-color: #28a745;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-bottom: 10px;
+            }
 
-    .add-btn {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 10px;
-      width: 100%;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .add-btn:hover {
-      background-color: #218838;
-    }
-  </style>
+        .link {
+            margin: 20px;
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
-<h2>🍽️ قائمة الطعام</h2>
+    <h1>🍽️ قائمة الطعام</h1>
+    <div class="menu-container" id="menuList"></div>
 
-<div class="menu-grid" id="menu-list">
-  <!-- يتم توليد الوجبات من الجافاسكربت -->
-</div>
+    <a href="cart.html" class="link">➡️ الانتقال إلى السلة</a>
 
-<script type="module">
-  // Firebase Auth + فحص تسجيل الدخول
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    <script>
+        const meals = [
+            {
+                name: "شاورما",
+                price: 20,
+                img: "https://images.unsplash.com/photo-1604908177221-6b433a3c2c58?w=400&h=300&fit=crop"
+            },
+            {
+                name: "بيتزا",
+                price: 25,
+                img: "https://images.unsplash.com/photo-1548365328-9b7d48d7f7f4?w=400&h=300&fit=crop"
+            },
+            {
+                name: "برغر",
+                price: 22,
+                img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop"
+            },
+            {
+                name: "عصير طبيعي",
+                price: 10,
+                img: "https://images.unsplash.com/photo-1572441710560-389d7dd95fdf?w=400&h=300&fit=crop"
+            },
+            {
+                name: "سلطة",
+                price: 15,
+                img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=300&fit=crop"
+            }
+        ];
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyB6VP1Jg3YmP_7KYDqyi39MrffUsEFZV0o",
-    authDomain: "chatgpt1-2c999.firebaseapp.com",
-    projectId: "chatgpt1-2c999",
-    storageBucket: "chatgpt1-2c999.appspot.com",
-    messagingSenderId: "1084542882267",
-    appId: "1:1084542882267:web:ca47011ec6ed6783cdb446",
-    databaseURL: "https://chatgpt1-2c999-default-rtdb.firebaseio.com/"
-  };
+        function addToCart(name, price) {
+            let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+            order.cart.push({ name: name, price: price });
+            localStorage.setItem("order", JSON.stringify(order));
+            alert("✅ تم إضافة " + name + " إلى السلة");
+        }
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      alert("يرجى تسجيل الدخول أولاً.");
-      window.location.href = "index.html";
-    } else {
-      console.log("تم تسجيل الدخول: ", user.email);
-    }
-  });
-
-  // توليد الوجبات تلقائيًا
-  const meals = [
-    { name: "برجر", price: "22₪", image: "https://cdn.pixabay.com/photo/2021/05/10/18/15/hamburger-6242604_960_720.jpg" },
-    { name: "شنيتسل", price: "22₪", image: "https://cdn.pixabay.com/photo/2021/01/23/20/01/chicken-5943392_960_720.jpg" },
-    { name: "شاورما", price: "20₪", image: "https://cdn.pixabay.com/photo/2019/09/15/19/09/food-4477497_960_720.jpg" },
-    { name: "صدر دجاج", price: "24₪", image: "https://cdn.pixabay.com/photo/2020/03/02/13/50/grilled-chicken-4894386_960_720.jpg" },
-    { name: "توست", price: "18₪", image: "https://cdn.pixabay.com/photo/2017/07/16/10/43/toast-2505279_960_720.jpg" },
-    { name: "نقنيق", price: "17₪", image: "https://cdn.pixabay.com/photo/2016/12/26/17/28/sausages-1936632_960_720.jpg" }
-  ];
-
-  const menuContainer = document.getElementById("menu-list");
-
-  meals.forEach(meal => {
-    const card = document.createElement("div");
-    card.className = "meal-card";
-    card.innerHTML = `
-      <img src="${meal.image}" alt="${meal.name}">
-      <h3>${meal.name}</h3>
-      <p>السعر: ${meal.price}</p>
-      <button class="add-btn">أضف إلى السلة +</button>
-    `;
-    menuContainer.appendChild(card);
-  });
-</script>
+        const container = document.getElementById("menuList");
+        meals.forEach(meal => {
+            container.innerHTML += `
+            <div class="meal-card">
+              <img src="${meal.img}" alt="${meal.name}">
+              <h3>${meal.name}</h3>
+              <p>السعر: ₪${meal.price}</p>
+              <button onclick="addToCart('${meal.name}', ${meal.price})">➕ أضف إلى السلة</button>
+            </div>
+          `;
+        });
+    </script>
 
 </body>
 </html>
