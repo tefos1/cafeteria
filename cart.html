@@ -1,186 +1,96 @@
-<html lang="ar"><head>
-    <meta charset="UTF-8">
-    <title>سلة الطلبات</title>
-    <style>
-        body {
-            font-family: Arial;
-            direction: rtl;
-            background-color: #f4f4f4;
-            padding: 20px;
-            text-align: center;
-        }
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>🛒 سلة الطلبات</title>
+  <style>
+    body {
+      font-family: Arial;
+      direction: rtl;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
 
-        .cart-item, .order-box {
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            margin: 15px auto;
-            padding: 15px;
-            width: 90%;
-            max-width: 500px;
-        }
+    .back-button {
+      background-color: #007bff;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      font-size: 16px;
+    }
 
-        textarea {
-            width: 90%;
-            resize: none;
-            margin-top: 10px;
-        }
+    .cart-container {
+      max-width: 700px;
+      margin: auto;
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: right;
+    }
 
-        button {
-            margin: 10px 5px;
-            padding: 8px 16px;
-        }
+    .cart-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
 
-        .delete-btn {
-            background-color: red;
-            color: white;
-            border: none;
-            padding: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            float: left;
-        }
-    </style>
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+
+    .total {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .empty {
+      color: gray;
+    }
+  </style>
 </head>
 <body>
 
-    <h2>🛒 سلة الطلبات</h2>
-    <div id="cartList"></div>
+  <button class="back-button" onclick="location.href='menu.html'">⬅️ رجوع إلى قائمة الطعام</button>
 
-    <label>🕒 وقت الاستلام:</label><br>
-    <input type="time" id="pickupTime"><br><br>
+  <h1>🛒 سلة الطلبات</h1>
+  <div class="cart-container" id="cartContainer">
+    <p class="empty">📭 لا توجد عناصر في السلة.</p>
+  </div>
+  <div class="total" id="totalPrice"></div>
 
-    <button onclick="submitOrder()">✅ إرسال الطلب</button>
-    <button onclick="goBack()">⬅️ رجوع إلى المنيو</button>
+  <script>
+    async function fetchCartItems() {
+      const orderData = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+      const container = document.getElementById("cartContainer");
+      const totalPriceElem = document.getElementById("totalPrice");
 
-    <div id="status"></div>
+      if (orderData.cart.length === 0) {
+        container.innerHTML = '<p class="empty">📭 لا توجد عناصر في السلة.</p>';
+        totalPriceElem.textContent = '';
+        return;
+      }
 
-    <div id="currentOrderBox" class="order-box" style="display:none;">
-        <h3>📦 طلبك الحالي</h3>
-        <div id="currentOrderDetails">🔄 جاري التحميل...</div>
-    </div>
+      let total = 0;
+      container.innerHTML = '';
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+      orderData.cart.forEach(item => {
+        total += item.price;
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "cart-item";
+        itemDiv.textContent = `${item.name} - ₪${item.price}`;
+        container.appendChild(itemDiv);
+      });
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
-            authDomain: "cafeteria-students-app.firebaseapp.com",
-            databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "cafeteria-students-app",
-            storageBucket: "cafeteria-students-app.appspot.com",
-            messagingSenderId: "338557210649",
-            appId: "1:338557210649:web:ba36c4623b4677ca585a88"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+      totalPriceElem.textContent = `💰 المجموع الكلي: ₪${total}`;
+    }
 
-        let order = JSON.parse(localStorage.getItem("order")) || {};
-        let cart = order.cart || [];
+    fetchCartItems();
+  </script>
 
-        function updateCartView() {
-            const cartDiv = document.getElementById("cartList");
-            cartDiv.innerHTML = "";
-            cart.forEach((item, i) => {
-                cartDiv.innerHTML += `
-              <div class="cart-item">
-                <button class="delete-btn" onclick="removeItem(${i})">حذف</button>
-                <b>${item.name}</b> - ₪${item.price}<br>
-                <textarea placeholder="ملاحظات" oninput="updateNote(${i}, this.value)">${item.note || ""}</textarea>
-              </div>
-            `;
-            });
-            if (order.pickupTime) document.getElementById("pickupTime").value = order.pickupTime;
-        }
-
-        function updateNote(index, note) {
-            cart[index].note = note;
-            order.cart = cart;
-            localStorage.setItem("order", JSON.stringify(order));
-        }
-
-        function removeItem(index) {
-            cart.splice(index, 1);
-            order.cart = cart;
-            localStorage.setItem("order", JSON.stringify(order));
-            updateCartView();
-        }
-
-        function submitOrder() {
-            const time = document.getElementById("pickupTime").value;
-            if (!time || cart.length === 0) {
-                document.getElementById("status").innerHTML = `<span style="color: red;">❗ أضف طلبات ووقت استلام.</span>`;
-                return;
-            }
-
-            firebase.auth().onAuthStateChanged(user => {
-                if (!user) return alert("يرجى تسجيل الدخول");
-
-                const total = cart.reduce((sum, item) => sum + item.price, 0);
-                const orderCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-                const fullOrder = {
-                    items: cart,
-                    pickupTime: time,
-                    total: total,
-                    timestamp: new Date().toLocaleString("en-US"),
-                    userId: user.uid,
-                    status: "قيد المعالجة",
-                    code: orderCode
-                };
-
-                const ordersRef = db.ref("orders").push();
-                ordersRef.set(fullOrder, (error) => {
-                    if (error) {
-                        document.getElementById("status").innerHTML = `<div style="color: red;">❌ خطأ في إرسال الطلب.</div>`;
-                    } else {
-                        document.getElementById("status").innerHTML = `
-                  <div style="background:#d4edda; color:#155724; padding:10px; border-radius:10px;">
-                    ✅ تم إرسال الطلب!<br><b>رقم الطلبية:</b> ${orderCode}
-                  </div>`;
-                        localStorage.removeItem("order");
-                        cart = [];
-                        updateCartView();
-                    }
-                });
-            });
-        }
-
-        function goBack() {
-            window.location.href = "menu-all-burger-images.html";
-        }
-
-        updateCartView();
-
-        // ✅ تتبع تلقائي للطلب الحالي
-        function startTrackingLatestOrder() {
-            firebase.auth().onAuthStateChanged(currentUser => {
-                if (!currentUser) return;
-                const ordersRef = firebase.database().ref("orders");
-                ordersRef.orderByChild("userId").equalTo(currentUser.uid).limitToLast(1).on("value", snapshot => {
-                    if (!snapshot.exists()) return;
-                    document.getElementById("currentOrderBox").style.display = "block";
-                    snapshot.forEach(child => {
-                        const order = child.val();
-                        const code = order.code || child.key.slice(-6).toUpperCase();
-                        const itemsList = order.items?.map(item => `<li>${item.name} - ₪${item.price}</li>`).join("") || "";
-                        document.getElementById("currentOrderDetails").innerHTML = `
-                  <p><b>رقم الطلبية:</b> ${code}</p>
-                  <p><b>الحالة:</b> <span style="color:blue;">${order.status || "قيد المعالجة"}</span></p>
-                  <p><b>وقت الاستلام:</b> ${order.pickupTime}</p>
-                  <p><b>المجموع:</b> ₪${order.total}</p>
-                  <ul>${itemsList}</ul>
-                `;
-                    });
-                });
-            });
-        }
-
-        startTrackingLatestOrder();
-    </script>
-
-
-</body></html>
+</body>
+</html>
