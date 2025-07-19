@@ -29,15 +29,6 @@
       margin: 5px 0;
       font-size: 16px;
     }
-    .order-card button {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
     .summary {
       background-color: #e9ecef;
       border-radius: 8px;
@@ -59,22 +50,22 @@
       cursor: pointer;
       margin-top: 15px;
     }
-    #pickupInput {
+    input {
       font-size: 16px;
       padding: 6px;
-      margin: 10px 0;
+      margin: 6px 0;
       border-radius: 5px;
-    }
-    #statusView {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #0d6efd;
     }
   </style>
 </head>
 <body>
 
-  <h2>📦 طلباتك الحالية</h2>
+  <h2>📦 سلة الطلبات / الطلبات الحالية</h2>
+
+  <label>👤 أدخل اسم الطالب لعرض الطلبات الحالية:
+    <input type="text" id="studentSearchName" oninput="loadActiveOrders()" />
+  </label>
+
   <div id="cartContainer"></div>
 
   <div class="summary" id="orderSummary" style="display:none;">
@@ -106,9 +97,7 @@
 
     const order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
 
-    if (order.cart.length === 0) {
-      cartContainer.innerHTML = "<p>🛒 السلة فارغة.</p>";
-    } else {
+    if (order.cart.length > 0) {
       let total = 0;
       order.cart.forEach((item, i) => {
         total += item.price;
@@ -122,7 +111,6 @@
         `;
         cartContainer.appendChild(div);
       });
-
       orderSummary.style.display = "block";
     }
 
@@ -176,7 +164,39 @@
         });
       });
     }
-  </script>
 
+    function loadActiveOrders() {
+      const name = document.getElementById("studentSearchName").value.trim();
+      if (!name) return;
+
+      db.ref("orders").orderByChild("studentName").equalTo(name).once("value", snapshot => {
+        const container = document.getElementById("cartContainer");
+        container.innerHTML = "";
+        let found = false;
+
+        snapshot.forEach(child => {
+          const order = child.val();
+          if (["قيد المعالجة", "جاهز"].includes(order.status)) {
+            found = true;
+            const div = document.createElement("div");
+            div.className = "order-card";
+            div.innerHTML = `
+              <p><strong>رقم الطلب:</strong> ${order.code}</p>
+              <p><strong>الحالة:</strong> ${order.status}</p>
+              <p><strong>الاستلام:</strong> ${order.pickupTime}</p>
+              <ul>${order.items.map(i => `<li>${i.name} - ₪${i.price}${i.extras?.length ? " (إضافات: " + i.extras.join(", ") + ")" : ""}</li>`).join("")}</ul>
+              <p><strong>الملاحظات:</strong> ${order.notes || "لا يوجد"}</p>
+              <p><strong>المجموع:</strong> ₪${order.total}</p>
+            `;
+            container.appendChild(div);
+          }
+        });
+
+        if (!found) {
+          container.innerHTML = "<p>🚫 لا توجد طلبات حالية بهذا الاسم.</p>";
+        }
+      });
+    }
+  </script>
 </body>
 </html>
