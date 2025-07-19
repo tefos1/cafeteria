@@ -1,116 +1,115 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <title>قائمة الطعام</title>
-    <style>
-        body {
-            font-family: Arial;
-            direction: rtl;
-            text-align: center;
-            background-color: #f4f4f4;
-        }
+  <meta charset="UTF-8">
+  <title>قائمة الطعام</title>
+  <style>
+    body {
+      font-family: Arial;
+      direction: rtl;
+      text-align: center;
+      background-color: #f4f4f4;
+    }
+    .item {
+      display: inline-block;
+      width: 200px;
+      margin: 15px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 10px;
+    }
+    img {
+      width: 100%;
+      height: 120px;
+      border-radius: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 5px 15px;
+    }
+  </style>
 
-        .menu-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-        .meal-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin: 10px;
-            width: 250px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-            .meal-card img {
-                width: 100%;
-                border-top-left-radius: 10px;
-                border-top-right-radius: 10px;
-            }
-
-            .meal-card h3 {
-                margin: 10px 0 5px 0;
-            }
-
-            .meal-card p {
-                margin: 5px;
-            }
-
-            .meal-card button {
-                background-color: #28a745;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 5px;
-                cursor: pointer;
-                margin-bottom: 10px;
-            }
-
-        .link {
-            margin: 20px;
-            display: block;
-        }
-    </style>
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
 
-    <h1>🍽️ قائمة الطعام</h1>
-    <div class="menu-container" id="menuList"></div>
+  <h2>🍽️ قائمة الطعام</h2>
+  <div id="menu"></div>
 
-    <a href="cart.html" class="link">➡️ الانتقال إلى السلة</a>
+  <br>
+  <button onclick="goToCart()">🛒 السلة</button>
 
-    <script>
-        const meals = [
-            {
-                name: "شاورما",
-                price: 20,
-                img: "https://images.unsplash.com/photo-1604908177221-6b433a3c2c58?w=400&h=300&fit=crop"
-            },
-            {
-                name: "بيتزا",
-                price: 25,
-                img: "https://images.unsplash.com/photo-1548365328-9b7d48d7f7f4?w=400&h=300&fit=crop"
-            },
-            {
-                name: "برغر",
-                price: 22,
-                img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop"
-            },
-            {
-                name: "عصير طبيعي",
-                price: 10,
-                img: "https://images.unsplash.com/photo-1572441710560-389d7dd95fdf?w=400&h=300&fit=crop"
-            },
-            {
-                name: "سلطة",
-                price: 15,
-                img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=300&fit=crop"
-            }
-        ];
+  <script>
+    // تحقق من تسجيل الدخول
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        alert("يرجى تسجيل الدخول أولاً.");
+        window.location.href = "index.html";
+      }
+    });
 
-        function addToCart(name, price) {
-            let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
-            order.cart.push({ name: name, price: price });
-            localStorage.setItem("order", JSON.stringify(order));
-            alert("✅ تم إضافة " + name + " إلى السلة");
-        }
+    const menuItems = [
+      { name: "شاورما", price: 22, img: "https://source.unsplash.com/200x120/?shawarma" },
+      { name: "شنيتسل", price: 20, img: "https://source.unsplash.com/200x120/?schnitzel" },
+      { name: "برجر", price: 25, img: "https://source.unsplash.com/200x120/?burger" },
+      { name: "صدر دجاج", price: 23, img: "https://source.unsplash.com/200x120/?chicken" },
+      { name: "توست", price: 15, img: "https://source.unsplash.com/200x120/?toast" },
+      { name: "نقنيق", price: 18, img: "https://source.unsplash.com/200x120/?sausage" }
+    ];
 
-        const container = document.getElementById("menuList");
-        meals.forEach(meal => {
-            container.innerHTML += `
-            <div class="meal-card">
-              <img src="${meal.img}" alt="${meal.name}">
-              <h3>${meal.name}</h3>
-              <p>السعر: ₪${meal.price}</p>
-              <button onclick="addToCart('${meal.name}', ${meal.price})">➕ أضف إلى السلة</button>
-            </div>
-          `;
-        });
-    </script>
+    const menuDiv = document.getElementById("menu");
+    menuItems.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <img src="${item.img}" alt="${item.name}">
+        <h4>${item.name}</h4>
+        <p>₪${item.price}</p>
+        <button onclick="addToCart('${item.name}', ${item.price})">➕ أضف</button>
+      `;
+      menuDiv.appendChild(div);
+    });
+
+    function addToCart(name, price) {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("يجب تسجيل الدخول");
+        return;
+      }
+
+      const cartRef = firebase.database().ref("cart/" + user.uid);
+      cartRef.push({
+        name: name,
+        price: price
+      }).then(() => {
+        alert("تمت الإضافة إلى السلة!");
+      }).catch(error => {
+        alert("حدث خطأ أثناء الإضافة: " + error.message);
+      });
+    }
+
+    function goToCart() {
+      window.location.href = "cart.html";
+    }
+  </script>
 
 </body>
 </html>
