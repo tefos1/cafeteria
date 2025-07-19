@@ -10,7 +10,6 @@
       text-align: center;
       background-color: #f4f4f4;
     }
-
     .cart-item {
       background-color: #fff;
       border: 1px solid #ddd;
@@ -20,7 +19,6 @@
       width: 300px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     .back-button {
       margin-top: 20px;
       display: inline-block;
@@ -59,26 +57,28 @@
     const cartList = document.getElementById("cartList");
 
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const cartRef = ref(db, "carts/" + user.uid);
-        onValue(cartRef, (snapshot) => {
-          cartList.innerHTML = "";
-          let total = 0;
-          snapshot.forEach((child) => {
-            const item = child.val();
-            total += item.price;
-            cartList.innerHTML += `
-              <div class="cart-item">
-                <h3>${item.name}</h3>
-                <p>₪${item.price}</p>
-              </div>
-            `;
-          });
-          cartList.innerHTML += `<h2>الإجمالي: ₪${total}</h2>`;
-        });
-      } else {
-        cartList.innerHTML = "<p>يرجى تسجيل الدخول لعرض السلة.</p>";
+      if (!user) {
+        alert("يرجى تسجيل الدخول.");
+        window.location.href = "index.html";
+        return;
       }
+
+      const cartRef = ref(db, "carts/" + user.uid);
+      onValue(cartRef, (snapshot) => {
+        cartList.innerHTML = "";
+        let total = 0;
+        snapshot.forEach((child) => {
+          const item = child.val();
+          total += item.price;
+          cartList.innerHTML += `
+            <div class="cart-item">
+              <h3>${item.name}</h3>
+              <p>₪${item.price}</p>
+            </div>
+          `;
+        });
+        cartList.innerHTML += `<h2>الإجمالي: ₪${total}</h2>`;
+      });
     });
   </script>
 </body>
