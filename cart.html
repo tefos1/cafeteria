@@ -94,6 +94,20 @@
     #sendBtn:hover {
       background-color: #0b5ed7;
     }
+
+    #pickupInput {
+      font-size: 16px;
+      padding: 6px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+
+    #statusView {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #0d6efd;
+    }
   </style>
 </head>
 <body>
@@ -102,11 +116,12 @@
   <div id="cartContainer"></div>
 
   <div class="summary" id="orderSummary" style="display:none;">
-    <p><strong>📅 وقت الطلب:</strong> <span id="orderTime"></span></p>
+    <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput" required></label>
     <p><strong>💰 المجموع النهائي:</strong> ₪<span id="totalAmount">0</span></p>
-    <p><strong>🔄 حالة الطلب:</strong> <span id="orderStatus">قيد المعالجة</span></p>
     <button id="sendBtn" onclick="confirmOrder()">📤 إرسال الطلب</button>
   </div>
+
+  <div id="statusView" style="display:none;"></div>
 
   <a href="menu.html" class="back-button">⬅️ الرجوع إلى القائمة</a>
 
@@ -163,7 +178,6 @@
       });
 
       document.getElementById("totalAmount").textContent = total;
-      document.getElementById("orderTime").textContent = new Date().toLocaleString("ar-EG");
       document.getElementById("orderSummary").style.display = "block";
     }
 
@@ -174,12 +188,13 @@
     }
 
     function confirmOrder() {
-      const now = new Date();
-      const pickupTime = now.toLocaleString("ar-EG");
+      const timeValue = document.getElementById("pickupInput").value;
+      if (!timeValue) return alert("❗ الرجاء اختيار ساعة استلام الطلب.");
+
       const items = order.cart.map(item => ({
         name: item.name,
         price: item.price,
-        note: item.extras && item.extras.length > 0 ? item.extras.join(", ") : ""
+        note: item.extras?.join(", ") || ""
       }));
 
       const total = items.reduce((sum, i) => sum + i.price, 0);
@@ -188,19 +203,37 @@
       const newOrder = {
         code: orderCode,
         items: items,
-        pickupTime: pickupTime,
+        pickupTime: timeValue,
         total: total,
         status: "قيد المعالجة",
         notes: ""
       };
 
-      db.ref("orders").push(newOrder)
-        .then(() => {
-          alert("✅ تم إرسال الطلب إلى المطبخ!\nرقم الطلب: " + orderCode);
-          localStorage.removeItem("order");
-          window.location.reload();
-        })
-        .catch(err => alert("❌ فشل إرسال الطلب: " + err));
+      db.ref("orders").push(newOrder).then(ref => {
+        alert("✅ تم إرسال الطلب!\nرقم الطلب: " + orderCode);
+        localStorage.removeItem("order");
+        document.getElementById("orderSummary").style.display = "none";
+        document.getElementById("cartContainer").innerHTML = "";
+        showStatusTracking(ref.key);
+      }).catch(err => alert("❌ فشل الإرسال: " + err));
+    }
+
+    function showStatusTracking(orderKey) {
+      const statusView = document.getElementById("statusView");
+      statusView.style.display = "block";
+      statusView.innerHTML = "📦 جاري تتبع حالة الطلب...";
+
+      db.ref("orders/" + orderKey).on("value", snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          statusView.innerHTML = `
+            ✅ <strong>رقم الطلب:</strong> ${data.code}<br>
+            🔁 <strong>الحالة الحالية:</strong> ${data.status || "قيد المعالجة"}
+          `;
+        } else {
+          statusView.innerHTML = "🚫 تم حذف الطلب أو انتهت صلاحيته.";
+        }
+      });
     }
 
     displayCart();
