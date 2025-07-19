@@ -47,7 +47,6 @@
       storageBucket: "chatgpt1-2c999.appspot.com",
       messagingSenderId: "1084542882267",
       appId: "1:1084542882267:web:ca47011ec6ed6783cdb446",
-      measurementId: "G-XHTBG1R78R",
       databaseURL: "https://chatgpt1-2c999-default-rtdb.firebaseio.com/"
     };
 
@@ -56,30 +55,38 @@
     const auth = getAuth(app);
     const cartList = document.getElementById("cartList");
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        alert("يرجى تسجيل الدخول.");
-        window.location.href = "index.html";
-        return;
-      }
+    let authResolved = false;
 
-      const cartRef = ref(db, "carts/" + user.uid);
-      onValue(cartRef, (snapshot) => {
-        cartList.innerHTML = "";
-        let total = 0;
-        snapshot.forEach((child) => {
-          const item = child.val();
-          total += item.price;
-          cartList.innerHTML += `
-            <div class="cart-item">
-              <h3>${item.name}</h3>
-              <p>₪${item.price}</p>
-            </div>
-          `;
+    onAuthStateChanged(auth, (user) => {
+      authResolved = true;
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        const cartRef = ref(db, "carts/" + user.uid);
+        onValue(cartRef, (snapshot) => {
+          cartList.innerHTML = "";
+          let total = 0;
+          snapshot.forEach((child) => {
+            const item = child.val();
+            total += item.price;
+            cartList.innerHTML += `
+              <div class="cart-item">
+                <h3>${item.name}</h3>
+                <p>₪${item.price}</p>
+              </div>
+            `;
+          });
+          cartList.innerHTML += `<h2>الإجمالي: ₪${total}</h2>`;
         });
-        cartList.innerHTML += `<h2>الإجمالي: ₪${total}</h2>`;
-      });
+      }
     });
+
+    setTimeout(() => {
+      if (!authResolved) {
+        alert("حدثت مشكلة في تسجيل الدخول.");
+        window.location.href = "index.html";
+      }
+    }, 3000);
   </script>
 </body>
 </html>
