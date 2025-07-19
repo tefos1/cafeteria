@@ -7,29 +7,30 @@
     body {
       font-family: Arial;
       direction: rtl;
-      background-color: #f8f9fa;
+      background-color: #f4f4f4;
       text-align: center;
       padding: 20px;
     }
 
-    h1 {
+    h2 {
       color: #0d6efd;
     }
 
     .order-card {
       background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
       margin: 15px auto;
       padding: 15px;
       width: 90%;
       max-width: 600px;
       text-align: right;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
     .order-card p {
       margin: 5px 0;
+      font-size: 16px;
     }
 
     .order-card button {
@@ -39,35 +40,41 @@
       padding: 6px 12px;
       border-radius: 5px;
       cursor: pointer;
+      font-size: 14px;
     }
 
     .order-card button:hover {
       background-color: #bb2d3b;
     }
 
-    .link {
-      display: inline-block;
+    .back-button {
       margin-top: 25px;
-      font-size: 18px;
-      text-decoration: none;
-      color: #198754;
-      border: 1px solid #198754;
-      padding: 8px 16px;
-      border-radius: 8px;
-    }
-
-    .link:hover {
+      display: inline-block;
       background-color: #198754;
       color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .back-button:hover {
+      background-color: #157347;
+    }
+
+    ul {
+      padding-right: 20px;
+      font-size: 15px;
+      color: #555;
     }
   </style>
 </head>
 <body>
 
-  <h1>🛒 سلة الطلبات</h1>
+  <h2>📦 طلباتك الحالية</h2>
   <div id="cartContainer"></div>
 
-  <a href="index.html" class="link">⬅️ الرجوع إلى قائمة الطعام</a>
+  <a href="menu.html" class="back-button">⬅️ الرجوع إلى القائمة</a>
 
   <script>
     const cartContainer = document.getElementById("cartContainer");
@@ -77,21 +84,26 @@
       cartContainer.innerHTML = "";
 
       if (order.cart.length === 0) {
-        cartContainer.innerHTML = "<p>السلة فارغة 🥲</p>";
+        cartContainer.innerHTML = "<p>السلة فارغة 🛒</p>";
         return;
       }
 
       order.cart.forEach((item, index) => {
-        const extrasText = item.extras && item.extras.length > 0
-          ? `<p>🧄 الإضافات: ${item.extras.join(", ")}</p>`
-          : "";
+        let extrasList = "";
+        if (item.extras && item.extras.length > 0) {
+          extrasList = "<ul>";
+          item.extras.forEach(extra => {
+            extrasList += `<li>➕ ${extra}</li>`;
+          });
+          extrasList += "</ul>";
+        }
 
         cartContainer.innerHTML += `
           <div class="order-card">
-            <p>🍽️ <strong>${item.name}</strong></p>
-            <p>💸 السعر: ₪${item.price}</p>
-            ${extrasText}
-            <button onclick="removeItem(${index})">🗑️ حذف</button>
+            <p><strong>🍽️ الوجبة:</strong> ${item.name}</p>
+            <p><strong>💸 السعر:</strong> ₪${item.price}</p>
+            ${extrasList}
+            <button onclick="removeItem(${index})">🗑️ حذف الطلب</button>
           </div>
         `;
       });
