@@ -30,11 +30,8 @@
       border-top-left-radius: 10px;
       border-top-right-radius: 10px;
     }
-    .meal-card h3 {
-      margin: 10px 0 5px 0;
-    }
-    .meal-card p {
-      margin: 5px;
+    .meal-card h3, .meal-card p {
+      margin: 10px;
     }
     .meal-card button {
       background-color: #28a745;
@@ -70,7 +67,6 @@
       storageBucket: "chatgpt1-2c999.appspot.com",
       messagingSenderId: "1084542882267",
       appId: "1:1084542882267:web:ca47011ec6ed6783cdb446",
-      measurementId: "G-XHTBG1R78R",
       databaseURL: "https://chatgpt1-2c999-default-rtdb.firebaseio.com/"
     };
 
@@ -80,38 +76,43 @@
     const menuRef = ref(db, "menu");
     const container = document.getElementById("menu");
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        alert("يرجى تسجيل الدخول أولاً.");
-        window.location.href = "index.html";
-        return;
-      }
+    let authResolved = false;
 
-      onValue(menuRef, (snapshot) => {
-        container.innerHTML = "";
-        snapshot.forEach((child) => {
-          const item = child.val();
-          const card = document.createElement("div");
-          card.className = "meal-card";
-          card.innerHTML = `
-            <img src="${item.image}" alt="${item.name}">
-            <h3>${item.name}</h3>
-            <p>₪${item.price}</p>
-            <button onclick="addToCart('${item.name}', ${item.price})">➕ أضف إلى السلة</button>
-          `;
-          container.appendChild(card);
+    onAuthStateChanged(auth, (user) => {
+      authResolved = true;
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        onValue(menuRef, (snapshot) => {
+          container.innerHTML = "";
+          snapshot.forEach((child) => {
+            const item = child.val();
+            const card = document.createElement("div");
+            card.className = "meal-card";
+            card.innerHTML = `
+              <img src="${item.image}" alt="${item.name}">
+              <h3>${item.name}</h3>
+              <p>₪${item.price}</p>
+              <button onclick="addToCart('${item.name}', ${item.price})">➕ أضف إلى السلة</button>
+            `;
+            container.appendChild(card);
+          });
         });
-      });
+      }
     });
+
+    setTimeout(() => {
+      if (!authResolved) {
+        alert("حدثت مشكلة في تسجيل الدخول، أعد المحاولة.");
+        window.location.href = "index.html";
+      }
+    }, 3000);
 
     window.addToCart = function(name, price) {
       const user = auth.currentUser;
-      if (!user) return alert("يجب تسجيل الدخول");
-
+      if (!user) return alert("يرجى تسجيل الدخول أولاً.");
       const itemRef = ref(db, `carts/${user.uid}/${Date.now()}`);
-      set(itemRef, { name, price }).then(() => {
-        alert("✅ تمت الإضافة إلى السلة");
-      });
+      set(itemRef, { name, price }).then(() => alert("✅ تمت الإضافة إلى السلة!"));
     };
   </script>
 </body>
