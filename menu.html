@@ -10,13 +10,11 @@
       text-align: center;
       background-color: #f4f4f4;
     }
-
     .menu-container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
     }
-
     .meal-card {
       background-color: #fff;
       border: 1px solid #ddd;
@@ -25,7 +23,6 @@
       width: 250px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     .meal-card img {
       width: 100%;
       height: 150px;
@@ -33,16 +30,12 @@
       border-top-left-radius: 10px;
       border-top-right-radius: 10px;
     }
-
     .meal-card h3 {
       margin: 10px 0 5px 0;
     }
-
-    .meal-card p, .meal-card label {
+    .meal-card p {
       margin: 5px;
-      display: block;
     }
-
     .meal-card button {
       background-color: #28a745;
       color: white;
@@ -52,7 +45,6 @@
       cursor: pointer;
       margin-bottom: 10px;
     }
-
     .link {
       margin: 20px;
       display: block;
@@ -68,8 +60,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB6VP1Jg3YmP_7KYDqyi39MrffUsEFZV0o",
@@ -85,40 +77,40 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
-
     const menuRef = ref(db, "menu");
     const container = document.getElementById("menu");
 
-    onValue(menuRef, (snapshot) => {
-      container.innerHTML = "";
-      snapshot.forEach((child) => {
-        const item = child.val();
-        const card = document.createElement("div");
-        card.className = "meal-card";
-        card.innerHTML = `
-          <img src="${item.image}" alt="${item.name}">
-          <h3>${item.name}</h3>
-          <p>السعر: ₪${item.price}</p>
-          <button onclick="addToCart('${item.name}', ${item.price})">➕ أضف إلى السلة</button>
-        `;
-        container.appendChild(card);
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        alert("يرجى تسجيل الدخول أولاً.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      onValue(menuRef, (snapshot) => {
+        container.innerHTML = "";
+        snapshot.forEach((child) => {
+          const item = child.val();
+          const card = document.createElement("div");
+          card.className = "meal-card";
+          card.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <h3>${item.name}</h3>
+            <p>₪${item.price}</p>
+            <button onclick="addToCart('${item.name}', ${item.price})">➕ أضف إلى السلة</button>
+          `;
+          container.appendChild(card);
+        });
       });
     });
 
     window.addToCart = function(name, price) {
-      const userId = auth.currentUser?.uid;
-      if (!userId) {
-        alert("يرجى تسجيل الدخول أولاً.");
-        return;
-      }
+      const user = auth.currentUser;
+      if (!user) return alert("يجب تسجيل الدخول");
 
-      const cartRef = ref(db, "carts/" + userId);
-      const itemRef = ref(db, `carts/${userId}/${Date.now()}`);
-      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ set }) => {
-        set(itemRef, {
-          name,
-          price
-        }).then(() => alert("✅ تمت الإضافة إلى السلة!"));
+      const itemRef = ref(db, `carts/${user.uid}/${Date.now()}`);
+      set(itemRef, { name, price }).then(() => {
+        alert("✅ تمت الإضافة إلى السلة");
       });
     };
   </script>
