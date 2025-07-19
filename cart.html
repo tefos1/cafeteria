@@ -56,9 +56,9 @@
       margin: 6px 0;
       border-radius: 5px;
     }
-    .back-to-menu {
+    .back-to-menu, .view-orders {
       display: inline-block;
-      margin-top: 20px;
+      margin: 15px 10px 0;
       padding: 10px 16px;
       background-color: #198754;
       color: white;
@@ -66,8 +66,14 @@
       border-radius: 6px;
       font-size: 16px;
     }
+    .view-orders {
+      background-color: #6c757d;
+    }
     .back-to-menu:hover {
       background-color: #146c43;
+    }
+    .view-orders:hover {
+      background-color: #5a6268;
     }
   </style>
 </head>
@@ -87,6 +93,7 @@
   <div id="statusView"></div>
 
   <a href="menu.html" class="back-to-menu">⬅️ الرجوع لقائمة الطعام</a>
+  <a href="my-orders.html" class="view-orders">📄 عرض الطلبات الحالية</a>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
