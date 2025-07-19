@@ -91,10 +91,6 @@
       margin-top: 15px;
     }
 
-    #sendBtn:hover {
-      background-color: #0b5ed7;
-    }
-
     #pickupInput {
       font-size: 16px;
       padding: 6px;
@@ -109,10 +105,6 @@
       color: #0d6efd;
     }
 
-    #myOrdersContainer {
-      margin-top: 25px;
-    }
-
     .my-orders-btn {
       background-color: #6c757d;
       color: white;
@@ -121,6 +113,10 @@
       border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
+    }
+
+    #myOrdersContainer {
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -142,8 +138,6 @@
   </div>
 
   <div id="myOrdersContainer"></div>
-
-  <a href="menu.html" class="back-button">⬅️ الرجوع إلى القائمة</a>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -191,6 +185,7 @@
           <div class="order-card">
             <p><strong>🍽️ الوجبة:</strong> ${item.name}</p>
             <p><strong>💸 السعر:</strong> ₪${item.price}</p>
+            ${item.note ? `<p><strong>📝 ملاحظة:</strong> ${item.note}</p>` : ""}
             ${extrasList}
             <button onclick="removeItem(${index})">🗑️ حذف الطلب</button>
           </div>
@@ -214,19 +209,19 @@
       const items = order.cart.map(item => ({
         name: item.name,
         price: item.price,
-        note: item.extras?.join(", ") || ""
+        note: item.note || "",
+        extras: item.extras || []
       }));
 
       const total = items.reduce((sum, i) => sum + i.price, 0);
-      const orderCode = Math.floor(100000 + Math.random() * 900000).toString(); // 🔢 رقم طلب مكون من أرقام فقط
+      const orderCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       const newOrder = {
         code: orderCode,
         items: items,
         pickupTime: timeValue,
         total: total,
-        status: "قيد المعالجة",
-        notes: ""
+        status: "قيد المعالجة"
       };
 
       db.ref("orders").push(newOrder).then(ref => {
@@ -249,6 +244,7 @@
           statusView.innerHTML = `
             ✅ <strong>رقم الطلب:</strong> ${data.code}<br>
             🔁 <strong>الحالة الحالية:</strong> ${data.status || "قيد المعالجة"}
+            <br><br><a href="cart.html" class="back-button">🔙 الرجوع للسلة</a>
           `;
         } else {
           statusView.innerHTML = "🚫 تم حذف الطلب أو انتهت صلاحيته.";
