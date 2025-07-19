@@ -30,12 +30,11 @@
     }
   </style>
 
-  <!-- Firebase CDN -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-  <!-- Firebase Config -->
   <script>
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
@@ -58,8 +57,6 @@
   <button onclick="goToCart()">🛒 السلة</button>
 
   <script>
-   
-
     const menuItems = [
       { name: "شاورما", price: 22, img: "https://source.unsplash.com/200x120/?shawarma" },
       { name: "شنيتسل", price: 20, img: "https://source.unsplash.com/200x120/?schnitzel" },
@@ -70,30 +67,40 @@
     ];
 
     const menuDiv = document.getElementById("menu");
-    menuItems.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        <img src="${item.img}" alt="${item.name}">
-        <h4>${item.name}</h4>
-        <p>₪${item.price}</p>
-        <button onclick="addToCart('${item.name}', ${item.price})">➕ أضف</button>
-      `;
-      menuDiv.appendChild(div);
+
+    // تحقق من المستخدم وسجل الطلبات
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        loadMenu(user.uid); // إذا في مستخدم فعلي، نكمل
+      } else {
+        alert("يرجى تسجيل الدخول أولاً.");
+        window.location.href = "index.html";
+      }
     });
 
-    function addToCart(name, price) {
-      const user = firebase.auth().currentUser;
-    
+    function loadMenu(uid) {
+      menuItems.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <img src="${item.img}" alt="${item.name}">
+          <h4>${item.name}</h4>
+          <p>₪${item.price}</p>
+          <button onclick="addToCart('${uid}', '${item.name}', ${item.price})">➕ أضف</button>
+        `;
+        menuDiv.appendChild(div);
+      });
+    }
 
-      const cartRef = firebase.database().ref("cart/" + user.uid);
+    function addToCart(uid, name, price) {
+      const cartRef = firebase.database().ref("cart/" + uid);
       cartRef.push({
         name: name,
         price: price
       }).then(() => {
-        alert("تمت الإضافة إلى السلة!");
+        alert("✅ تمت الإضافة إلى السلة!");
       }).catch(error => {
-        alert("حدث خطأ أثناء الإضافة: " + error.message);
+        alert("❌ حدث خطأ أثناء الإضافة: " + error.message);
       });
     }
 
