@@ -1,165 +1,238 @@
 <!DOCTYPE html>
 <html lang="ar">
-<headِ>
-  <meta charset="UTF-8" />
-  <title>سلة الطلبات</title>
+<head>
+  <meta charset="UTF-8">
+  <title>قائمة الطعام</title>
   <style>
     body {
       font-family: Arial;
       direction: rtl;
-      background-color: #f4f4f4;
       text-align: center;
-      padding: 20px;
+      background-color: #f8f9fa;
     }
-    h2 {
-      color: #0d6efd;
+
+    h1 {
+      color: #d63384;
+      margin-top: 30px;
     }
-    .order-card {
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin: 15px auto;
-      padding: 15px;
-      width: 90%;
-      max-width: 600px;
-      text-align: right;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+    .menu-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
     }
-    .order-card p {
-      margin: 5px 0;
-      font-size: 16px;
+
+    .meal-card {
+      background-color: #ffffff;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      margin: 15px;
+      width: 260px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      padding-bottom: 10px;
     }
-    .summary {
-      background-color: #e9ecef;
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 20px;
-      text-align: right;
-      width: 90%;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+
+    .meal-card:hover {
+      transform: scale(1.03);
     }
-    #sendBtn {
-      background-color: #0d6efd;
+
+    .meal-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    .meal-card h3 {
+      margin: 10px 0 5px 0;
+      color: #343a40;
+    }
+
+    .meal-card p {
+      margin: 5px;
+      color: #495057;
+    }
+
+    .meal-card button {
+      background-color: #198754;
       color: white;
-      padding: 10px 18px;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .meal-card button:hover {
+      background-color: #157347;
+    }
+
+    .link {
+      margin: 30px;
+      display: inline-block;
+      text-decoration: none;
+      color: #0d6efd;
+      font-size: 18px;
+    }
+
+    /* Modal Style */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.6);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      text-align: right;
+    }
+
+    .modal h3 {
+      margin-bottom: 10px;
+      color: #dc3545;
+    }
+
+    .modal .extras label {
+      display: block;
+      font-size: 15px;
+      margin: 6px 0;
+    }
+
+    .modal button {
+      margin-top: 15px;
+      padding: 10px 20px;
       border: none;
       border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
-      margin-top: 15px;
     }
-    input {
-      font-size: 16px;
+
+    .modal .add-btn {
+      background-color: #198754;
+      color: white;
+    }
+
+    .modal .close-btn {
+      background-color: #6c757d;
+      color: white;
+      float: left;
+    }
+
+    textarea {
+      width: 100%;
+      border-radius: 6px;
       padding: 6px;
-      margin: 6px 0;
-      border-radius: 5px;
+      margin-top: 10px;
+      resize: none;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <h2>📦 سلة الطلبات</h2>
+  <h1>🍽️ قائمة الطعام</h1>
+  <div class="menu-container" id="menuList"></div>
 
-  <div id="cartContainer"></div>
+  <a href="cart.html" class="link">➡️ الانتقال إلى السلة</a>
 
-  <div class="summary" id="orderSummary" style="display:none;">
-    <label>👤 اسم الطالب: <input type="text" id="studentName" required></label><br>
-    <label>📝 ملاحظات: <input type="text" id="noteInput"></label><br>
-    <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput"></label><br>
-    <button id="sendBtn" onclick="confirmOrder()">🚀 إرسال الطلب</button>
+  <!-- Modal -->
+  <div class="modal" id="extrasModal">
+    <div class="modal-content">
+      <h3 id="modalMealName"></h3>
+      <div id="extrasContainer"></div>
+      <textarea id="noteInput" placeholder="📝 ملاحظات إضافية (اختياري)"></textarea>
+      <button class="add-btn" onclick="confirmAddToCart()">✅ أضف للسلة</button>
+      <button class="close-btn" onclick="closeModal()">✖ إغلاق</button>
+    </div>
   </div>
 
-  <div id="statusView"></div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
-      authDomain: "cafeteria-students-app.firebaseapp.com",
-      databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "cafeteria-students-app",
-      storageBucket: "cafeteria-students-app.appspot.com",
-      messagingSenderId: "338557210649",
-      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const meals = [
+      { name: "شاورما", price: 20, img: "https://images.unsplash.com/photo-1604908177221-6b433a3c2c58?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "صدر دجاج", price: 23, img: "https://images.unsplash.com/photo-1562967916-eb82221dfb36?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "برجر", price: 22, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "شنيتسل", price: 21, img: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "نقنيق", price: 19, img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "توست", price: 14, img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop", hasExtras: true },
+      { name: "اكس ال", price: 8, img: "https://images.unsplash.com/photo-1614714843309-9137b9f1c279?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "كولا زيرو", price: 6, img: "https://images.unsplash.com/photo-1604849911323-9609a1af5c92?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "كولا", price: 6, img: "https://images.unsplash.com/photo-1588854337221-4a2bb5b4dc7f?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "صودا", price: 5, img: "https://images.unsplash.com/photo-1598188303189-ec2ee8c75fc0?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "عصير", price: 7, img: "https://images.unsplash.com/photo-1572441710560-389d7dd95fdf?w=400&h=300&fit=crop", hasExtras: false },
+      { name: "ماء", price: 3, img: "https://images.unsplash.com/photo-1611212243263-1ef7a80c73dc?w=400&h=300&fit=crop", hasExtras: false }
+    ];
 
-    const cartContainer = document.getElementById("cartContainer");
-    const orderSummary = document.getElementById("orderSummary");
+    let selectedMeal = null;
 
-    const order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+    function openExtrasModal(meal) {
+      selectedMeal = meal;
+      document.getElementById("modalMealName").innerText = meal.name;
 
-    if (order.cart.length > 0) {
-      let total = 0;
-      order.cart.forEach((item, i) => {
-        total += item.price;
-        const div = document.createElement("div");
-        div.className = "order-card";
-        div.innerHTML = `
-          <p><strong>الوجبة:</strong> ${item.name}</p>
-          <p><strong>السعر:</strong> ₪${item.price}</p>
-          ${item.extras?.length ? `<p><strong>الإضافات:</strong> ${item.extras.join(", ")}</p>` : ""}
-          <button onclick="removeItem(${i})">🗑 إزالة</button>
-        `;
-        cartContainer.appendChild(div);
-      });
-      orderSummary.style.display = "block";
+      const container = document.getElementById("extrasContainer");
+      container.innerHTML = "";
+
+      if (meal.hasExtras) {
+        const options = ["خس", "بندورة", "بصل", "سلطة عربية", "كتشوب", "مايونيز"];
+        container.innerHTML = '<div class="extras">' + options.map(opt =>
+          `<label><input type="checkbox" value="${opt}"> ${opt}</label>`
+        ).join("") + '</div>';
+      } else {
+        container.innerHTML = "<p>لا توجد إضافات لهذه الوجبة.</p>";
+      }
+
+      document.getElementById("noteInput").value = "";
+      document.getElementById("extrasModal").style.display = "block";
     }
 
-    function removeItem(index) {
-      order.cart.splice(index, 1);
-      localStorage.setItem("order", JSON.stringify(order));
-      location.reload();
+    function closeModal() {
+      document.getElementById("extrasModal").style.display = "none";
     }
 
-    function confirmOrder() {
-      const timeValue = document.getElementById("pickupInput").value;
-      const nameValue = document.getElementById("studentName").value.trim();
+    function confirmAddToCart() {
+      const checkboxes = document.querySelectorAll("#extrasContainer input:checked");
+      const extras = Array.from(checkboxes).map(cb => cb.value);
       const note = document.getElementById("noteInput").value;
 
-      if (!timeValue || !nameValue) return alert("⚠️ الرجاء تعبئة جميع الحقول.");
-
-      const orderCode = Math.floor(100000 + Math.random() * 900000);
-
-      const newOrder = {
-        code: orderCode,
-        studentName: nameValue,
-        items: order.cart,
-        pickupTime: timeValue,
-        notes: note,
-        total: order.cart.reduce((sum, item) => sum + item.price, 0),
-        status: "قيد المعالجة"
-      };
-
-      firebase.database().ref("orders").push(newOrder).then(() => {
-        localStorage.removeItem("order");
-        showStatusTracking(newOrder);
+      let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+      order.cart.push({
+        name: selectedMeal.name,
+        price: selectedMeal.price,
+        extras: extras,
+        note: note
       });
+
+      localStorage.setItem("order", JSON.stringify(order));
+
+      alert(`✅ تم إضافة ${selectedMeal.name} إلى السلة${extras.length > 0 ? " مع: " + extras.join(", ") : ""}${note ? "\n📝 ملاحظة: " + note : ""}`);
+      closeModal();
     }
 
-    function showStatusTracking(data) {
-      const statusView = document.getElementById("statusView");
-      statusView.innerHTML = `
-        ✅ <strong>رقم الطلب:</strong> ${data.code}<br>
-        🔁 <strong>الحالة الحالية:</strong> <span id="liveStatus">${data.status}</span>
+    const container = document.getElementById("menuList");
+
+    meals.forEach((meal) => {
+      container.innerHTML += `
+        <div class="meal-card">
+          <img src="${meal.img}" alt="${meal.name}">
+          <h3>${meal.name}</h3>
+          <p>السعر: ₪${meal.price}</p>
+          <button onclick='openExtrasModal(${JSON.stringify(meal)})'>➕ أضف إلى السلة</button>
+        </div>
       `;
-      trackLiveStatus(data.code);
-      document.getElementById("orderSummary").style.display = "none";
-      cartContainer.innerHTML = "";
-    }
-
-    function trackLiveStatus(code) {
-      db.ref("orders").orderByChild("code").equalTo(code).on("value", snapshot => {
-        snapshot.forEach(child => {
-          const newStatus = child.val().status;
-          document.getElementById("liveStatus").innerText = newStatus;
-        });
-      });
-    }
+    });
   </script>
+
 </body>
 </html>
