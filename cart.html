@@ -198,7 +198,7 @@
       const container = document.getElementById("myOrdersContainer");
       container.innerHTML = "🔄 جاري تحميل طلباتك...";
 
-      db.ref("orders").once("value").then(snapshot => {
+    db.ref("orders").on("value", snapshot => {
         container.innerHTML = "";
         let found = false;
 
