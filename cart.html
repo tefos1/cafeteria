@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
-<headِ>
+<head>
   <meta charset="UTF-8" />
   <title>سلة الطلبات</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -56,6 +56,7 @@
       padding: 6px;
       margin: 6px 0;
       border-radius: 5px;
+      width: 95%;
     }
     .my-orders-btn {
       background-color: #6c757d;
@@ -87,7 +88,7 @@
 
   <div class="summary" id="orderSummary" style="display:none;">
     <label>👤 اسم الطالب: <input type="text" id="studentName" required></label><br>
-    <label>📝 ملاحظات: <input type="text" id="noteInput"></label><br>
+    <label>📝 ملاحظات: <input type="text" id="noteInput" placeholder="أدخل ملاحظاتك (اختياري)"></label><br>
     <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput"></label><br>
     <button id="sendBtn" onclick="confirmOrder()">🚀 إرسال الطلب</button>
   </div>
@@ -152,7 +153,7 @@
     function confirmOrder() {
       const timeValue = document.getElementById("pickupInput").value;
       const nameValue = document.getElementById("studentName").value.trim();
-      const note = document.getElementById("noteInput").value;
+      const note = document.getElementById("noteInput").value.trim();
 
       if (!timeValue || !nameValue) return alert("⚠️ الرجاء تعبئة جميع الحقول.");
 
@@ -163,7 +164,7 @@
         studentName: nameValue,
         items: order.cart,
         pickupTime: timeValue,
-        notes: note,
+        notes: note, // ✅ هنا أضفنا الملاحظات
         total: order.cart.reduce((sum, item) => sum + item.price, 0),
         status: "قيد المعالجة"
       };
@@ -198,7 +199,7 @@
       const container = document.getElementById("myOrdersContainer");
       container.innerHTML = "🔄 جاري تحميل طلباتك...";
 
-    db.ref("orders").on("value", snapshot => {
+      db.ref("orders").on("value", snapshot => {
         container.innerHTML = "";
         let found = false;
 
@@ -218,6 +219,7 @@
               <p><strong>👤 اسم الطالب:</strong> ${order.studentName || "غير محدد"}</p>
               <p><strong>⏰ وقت الاستلام:</strong> ${order.pickupTime}</p>
               <p><strong>💰 المجموع:</strong> ₪${order.total}</p>
+              <p><strong>📌 الملاحظات:</strong> ${order.notes || "لا توجد"}</p>
               <p><strong>🔄 الحالة:</strong> ${order.status || "قيد المعالجة"}</p>
               <ul>${listItems}</ul>
             `;
