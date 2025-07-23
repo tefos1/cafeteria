@@ -75,6 +75,7 @@
         card.innerHTML = `
           <h3>🧾 رقم الطلب: ${order.code}</h3>
           <p><strong>👤 اسم الطالب:</strong> ${order.studentName || "غير محدد"}</p>
+          <p><strong>📌 الملاحظات:</strong> ${order.notes || "لا توجد ملاحظات"}</p>
           <p><strong>⏰ وقت الاستلام:</strong> ${order.pickupTime}</p>
           <p><strong>💰 المجموع:</strong> ₪${order.total}</p>
           <p><strong>📄 الحالة:</strong> ${order.status}</p>
