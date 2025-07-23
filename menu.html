@@ -131,15 +131,6 @@
       color: white;
       float: left;
     }
-
-    textarea {
-      width: 100%;
-      border-radius: 6px;
-      padding: 6px;
-      margin-top: 10px;
-      resize: none;
-      font-size: 14px;
-    }
   </style>
 </head>
 <body>
@@ -154,7 +145,6 @@
     <div class="modal-content">
       <h3 id="modalMealName"></h3>
       <div id="extrasContainer"></div>
-      <textarea id="noteInput" placeholder="📝 ملاحظات إضافية (اختياري)"></textarea>
       <button class="add-btn" onclick="confirmAddToCart()">✅ أضف للسلة</button>
       <button class="close-btn" onclick="closeModal()">✖ إغلاق</button>
     </div>
@@ -194,7 +184,6 @@
         container.innerHTML = "<p>لا توجد إضافات لهذه الوجبة.</p>";
       }
 
-      document.getElementById("noteInput").value = "";
       document.getElementById("extrasModal").style.display = "block";
     }
 
@@ -205,19 +194,17 @@
     function confirmAddToCart() {
       const checkboxes = document.querySelectorAll("#extrasContainer input:checked");
       const extras = Array.from(checkboxes).map(cb => cb.value);
-      const note = document.getElementById("noteInput").value;
 
       let order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
       order.cart.push({
         name: selectedMeal.name,
         price: selectedMeal.price,
-        extras: extras,
-        note: note
+        extras: extras
       });
 
       localStorage.setItem("order", JSON.stringify(order));
 
-      alert(`✅ تم إضافة ${selectedMeal.name} إلى السلة${extras.length > 0 ? " مع: " + extras.join(", ") : ""}${note ? "\n📝 ملاحظة: " + note : ""}`);
+      alert(`✅ تم إضافة ${selectedMeal.name} إلى السلة${extras.length > 0 ? " مع: " + extras.join(", ") : ""}`);
       closeModal();
     }
 
