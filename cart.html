@@ -12,9 +12,7 @@
       text-align: center;
       padding: 20px;
     }
-    h2 {
-      color: #0d6efd;
-    }
+    h2 { color: #0d6efd; }
     .order-card {
       background-color: #fff;
       border: 1px solid #ddd;
@@ -25,10 +23,15 @@
       max-width: 600px;
       text-align: right;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .order-card p {
-      margin: 5px 0;
-      font-size: 16px;
+    .order-card img {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
     }
     .summary {
       background-color: #e9ecef;
@@ -58,16 +61,6 @@
       border-radius: 5px;
       width: 95%;
     }
-    .my-orders-btn {
-      background-color: #6c757d;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
     .back-button {
       background-color: #198754;
       color: white;
@@ -82,156 +75,118 @@
 </head>
 <body>
 
-  <h2>📦 سلة الطلبات</h2>
+<h2>📦 سلة الطلبات</h2>
 
-  <div id="cartContainer"></div>
+<div id="cartContainer"></div>
 
-  <div class="summary" id="orderSummary" style="display:none;">
-    <label>👤 اسم الطالب: <input type="text" id="studentName" required></label><br>
-    <label>📝 ملاحظات: <input type="text" id="noteInput" placeholder="أدخل ملاحظاتك (اختياري)"></label><br>
-    <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput"></label><br>
-    <button id="sendBtn" onclick="confirmOrder()">🚀 إرسال الطلب</button>
-  </div>
+<div class="summary" id="orderSummary" style="display:none;">
+  <label>👤 اسم الطالب: <input type="text" id="studentName" required></label><br>
+  <label>📝 ملاحظات: <input type="text" id="noteInput" placeholder="أدخل ملاحظاتك (اختياري)"></label><br>
+  <label>🕒 اختر ساعة الاستلام: <input type="time" id="pickupInput"></label><br>
+  <button id="sendBtn" onclick="confirmOrder()">🚀 إرسال الطلب</button>
+</div>
 
-  <div id="statusView"></div>
+<div id="statusView"></div>
 
-  <button onclick="showMyOrders()" class="my-orders-btn">📄 عرض طلباتي الحالية</button>
-  <div id="myOrdersContainer"></div>
-  <a href="menu.html" class="back-button">🔙 الرجوع إلى قائمة الطعام</a>
+<a href="menu.html" class="back-button">🔙 الرجوع إلى قائمة الطعام</a>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
-      authDomain: "cafeteria-students-app.firebaseapp.com",
-      databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "cafeteria-students-app",
-      storageBucket: "cafeteria-students-app.appspot.com",
-      messagingSenderId: "338557210649",
-      appId: "1:338557210649:web:ba36c4623b4677ca585a88"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCu4ged4p8GzaQo4DFbY_sthYWHSvSYqpU",
+  authDomain: "cafeteria-students-app.firebaseapp.com",
+  databaseURL: "https://cafeteria-students-app-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "cafeteria-students-app",
+  storageBucket: "cafeteria-students-app.appspot.com",
+  messagingSenderId: "338557210649",
+  appId: "1:338557210649:web:ba36c4623b4677ca585a88"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    const cartContainer = document.getElementById("cartContainer");
-    const orderSummary = document.getElementById("orderSummary");
-    const order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+const cartContainer = document.getElementById("cartContainer");
+const orderSummary = document.getElementById("orderSummary");
+const order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
 
-    if (order.cart.length > 0) {
-      let total = 0;
-      order.cart.forEach((item, i) => {
-        total += item.price;
-        const div = document.createElement("div");
-        div.className = "order-card";
-        div.innerHTML = `
-          <p><strong>الوجبة:</strong> ${item.name}</p>
-          <p><strong>السعر:</strong> ₪${item.price}</p>
-          ${item.extras?.length ? `<p><strong>الإضافات:</strong> ${item.extras.join(", ")}</p>` : ""}
-          <button onclick="removeItem(${i})">🗑 إزالة</button>
-        `;
-        cartContainer.appendChild(div);
-      });
-      const totalDisplay = document.createElement("p");
-      totalDisplay.style.fontSize = "18px";
-      totalDisplay.style.fontWeight = "bold";
-      totalDisplay.innerHTML = `💰 المجموع الكلي: ₪<span id="totalSum"></span>`;
-      cartContainer.appendChild(totalDisplay);
-      document.getElementById("totalSum").innerText = total;
+if (order.cart.length > 0) {
+  let total = 0;
+  order.cart.forEach((item, i) => {
+    total += item.price;
+    const div = document.createElement("div");
+    div.className = "order-card";
+    div.innerHTML = `
+      <img src="${item.img}" alt="${item.name}">
+      <div>
+        <p><strong>الوجبة:</strong> ${item.name}</p>
+        <p><strong>السعر:</strong> ₪${item.price}</p>
+        ${item.extras?.length ? `<p><strong>الإضافات:</strong> ${item.extras.join(", ")}</p>` : ""}
+        <button onclick="removeItem(${i})">🗑 إزالة</button>
+      </div>
+    `;
+    cartContainer.appendChild(div);
+  });
+  const totalDisplay = document.createElement("p");
+  totalDisplay.style.fontSize = "18px";
+  totalDisplay.style.fontWeight = "bold";
+  totalDisplay.innerHTML = `💰 المجموع الكلي: ₪<span id="totalSum">${total}</span>`;
+  cartContainer.appendChild(totalDisplay);
 
-      orderSummary.style.display = "block";
-    } else {
-      cartContainer.innerHTML = "<p>🛒 السلة فارغة</p>";
-    }
+  orderSummary.style.display = "block";
+} else {
+  cartContainer.innerHTML = "<p>🛒 السلة فارغة</p>";
+}
 
-    function removeItem(index) {
-      order.cart.splice(index, 1);
-      localStorage.setItem("order", JSON.stringify(order));
-      location.reload();
-    }
+function removeItem(index) {
+  order.cart.splice(index, 1);
+  localStorage.setItem("order", JSON.stringify(order));
+  location.reload();
+}
 
-    function confirmOrder() {
-      const timeValue = document.getElementById("pickupInput").value;
-      const nameValue = document.getElementById("studentName").value.trim();
-      const note = document.getElementById("noteInput").value.trim();
+function confirmOrder() {
+  const timeValue = document.getElementById("pickupInput").value;
+  const nameValue = document.getElementById("studentName").value.trim();
+  const note = document.getElementById("noteInput").value.trim();
 
-      if (!timeValue || !nameValue) return alert("⚠️ الرجاء تعبئة جميع الحقول.");
+  if (!timeValue || !nameValue) return alert("⚠️ الرجاء تعبئة جميع الحقول.");
 
-      const orderCode = Math.floor(100000 + Math.random() * 900000);
+  const orderCode = Math.floor(100000 + Math.random() * 900000);
 
-      const newOrder = {
-        code: orderCode,
-        studentName: nameValue,
-        items: order.cart,
-        pickupTime: timeValue,
-        notes: note, // ✅ هنا أضفنا الملاحظات
-        total: order.cart.reduce((sum, item) => sum + item.price, 0),
-        status: "قيد المعالجة"
-      };
+  const newOrder = {
+    code: orderCode,
+    studentName: nameValue,
+    items: order.cart,
+    pickupTime: timeValue,
+    notes: note,
+    total: order.cart.reduce((sum, item) => sum + item.price, 0),
+    status: "قيد المعالجة"
+  };
 
-      firebase.database().ref("orders").push(newOrder).then(() => {
-        localStorage.removeItem("order");
-        showStatusTracking(newOrder);
-      });
-    }
+  firebase.database().ref("orders").push(newOrder).then(() => {
+    localStorage.removeItem("order");
+    showStatusTracking(newOrder);
+  });
+}
 
-    function showStatusTracking(data) {
-      const statusView = document.getElementById("statusView");
-      statusView.innerHTML = `
-        ✅ <strong>رقم الطلب:</strong> ${data.code}<br>
-        🔁 <strong>الحالة الحالية:</strong> <span id="liveStatus">${data.status}</span>
-      `;
-      trackLiveStatus(data.code);
-      document.getElementById("orderSummary").style.display = "none";
-      cartContainer.innerHTML = "";
-    }
+function showStatusTracking(data) {
+  const statusView = document.getElementById("statusView");
+  statusView.innerHTML = `
+    ✅ <strong>رقم الطلب:</strong> ${data.code}<br>
+    🔁 <strong>الحالة الحالية:</strong> <span id="liveStatus">${data.status}</span>
+  `;
+  trackLiveStatus(data.code);
+  document.getElementById("orderSummary").style.display = "none";
+  cartContainer.innerHTML = "";
+}
 
-    function trackLiveStatus(code) {
-      db.ref("orders").orderByChild("code").equalTo(code).on("value", snapshot => {
-        snapshot.forEach(child => {
-          const newStatus = child.val().status;
-          document.getElementById("liveStatus").innerText = newStatus;
-        });
-      });
-    }
-
-    function showMyOrders() {
-      const container = document.getElementById("myOrdersContainer");
-      container.innerHTML = "🔄 جاري تحميل طلباتك...";
-
-      db.ref("orders").on("value", snapshot => {
-        container.innerHTML = "";
-        let found = false;
-
-        snapshot.forEach(child => {
-          const order = child.val();
-
-          if (order.code) {
-            found = true;
-            const listItems = order.items?.map(item =>
-              `<li>${item.name} - ₪${item.price}${item.extras?.length ? " (" + item.extras.join(", ") + ")" : ""}</li>`
-            ).join("");
-
-            const card = document.createElement("div");
-            card.className = "order-card";
-            card.innerHTML = `
-              <h3>🧾 رقم الطلب: ${order.code}</h3>
-              <p><strong>👤 اسم الطالب:</strong> ${order.studentName || "غير محدد"}</p>
-              <p><strong>⏰ وقت الاستلام:</strong> ${order.pickupTime}</p>
-              <p><strong>💰 المجموع:</strong> ₪${order.total}</p>
-              <p><strong>📌 الملاحظات:</strong> ${order.notes || "لا توجد"}</p>
-              <p><strong>🔄 الحالة:</strong> ${order.status || "قيد المعالجة"}</p>
-              <ul>${listItems}</ul>
-            `;
-            container.appendChild(card);
-          }
-        });
-
-        if (!found) {
-          container.innerHTML = "❌ لا توجد طلبات حالية.";
-        }
-      });
-    }
-  </script>
+function trackLiveStatus(code) {
+  db.ref("orders").orderByChild("code").equalTo(code).on("value", snapshot => {
+    snapshot.forEach(child => {
+      const newStatus = child.val().status;
+      document.getElementById("liveStatus").innerText = newStatus;
+    });
+  });
+}
+</script>
 </body>
 </html>
