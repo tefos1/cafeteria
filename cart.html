@@ -24,8 +24,8 @@
       text-align: right;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       display: flex;
-      align-items: center;
       gap: 10px;
+      align-items: center;
     }
     .order-card img {
       width: 60px;
@@ -61,6 +61,16 @@
       border-radius: 5px;
       width: 95%;
     }
+    .my-orders-btn {
+      background-color: #6c757d;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
     .back-button {
       background-color: #198754;
       color: white;
@@ -70,6 +80,10 @@
       font-size: 16px;
       display: inline-block;
       margin-top: 30px;
+    }
+    #myOrdersContainer .order-card {
+      flex-direction: column;
+      align-items: flex-start;
     }
   </style>
 </head>
@@ -87,6 +101,10 @@
 </div>
 
 <div id="statusView"></div>
+
+<hr>
+<button onclick="showMyOrders()" class="my-orders-btn">📄 عرض طلباتي الحالية</button>
+<div id="myOrdersContainer"></div>
 
 <a href="menu.html" class="back-button">🔙 الرجوع إلى قائمة الطعام</a>
 
@@ -107,8 +125,10 @@ const db = firebase.database();
 
 const cartContainer = document.getElementById("cartContainer");
 const orderSummary = document.getElementById("orderSummary");
+const myOrdersContainer = document.getElementById("myOrdersContainer");
 const order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
 
+// ✅ عرض محتويات السلة
 if (order.cart.length > 0) {
   let total = 0;
   order.cart.forEach((item, i) => {
@@ -143,6 +163,7 @@ function removeItem(index) {
   location.reload();
 }
 
+// ✅ إرسال الطلب إلى Firebase
 function confirmOrder() {
   const timeValue = document.getElementById("pickupInput").value;
   const nameValue = document.getElementById("studentName").value.trim();
@@ -168,6 +189,7 @@ function confirmOrder() {
   });
 }
 
+// ✅ تتبع حالة الطلب مباشرة بعد الإرسال
 function showStatusTracking(data) {
   const statusView = document.getElementById("statusView");
   statusView.innerHTML = `
@@ -179,12 +201,47 @@ function showStatusTracking(data) {
   cartContainer.innerHTML = "";
 }
 
+// ✅ تحديث الحالة لحظياً
 function trackLiveStatus(code) {
   db.ref("orders").orderByChild("code").equalTo(code).on("value", snapshot => {
     snapshot.forEach(child => {
       const newStatus = child.val().status;
       document.getElementById("liveStatus").innerText = newStatus;
     });
+  });
+}
+
+// ✅ عرض الطلبات الحالية (Realtime)
+function showMyOrders() {
+  myOrdersContainer.innerHTML = "🔄 جاري تحميل طلباتك...";
+  db.ref("orders").on("value", snapshot => {
+    myOrdersContainer.innerHTML = "";
+    let found = false;
+
+    snapshot.forEach(child => {
+      const order = child.val();
+      const listItems = order.items?.map(item =>
+        `<li><img src="${item.img}" style="width:40px;height:40px;border-radius:6px;"> ${item.name} - ₪${item.price}${item.extras?.length ? " (" + item.extras.join(", ") + ")" : ""}</li>`
+      ).join("");
+
+      found = true;
+      const card = document.createElement("div");
+      card.className = "order-card";
+      card.innerHTML = `
+        <h3>🧾 رقم الطلب: ${order.code}</h3>
+        <p><strong>👤 اسم الطالب:</strong> ${order.studentName}</p>
+        <p><strong>⏰ وقت الاستلام:</strong> ${order.pickupTime}</p>
+        <p><strong>💰 المجموع:</strong> ₪${order.total}</p>
+        <p><strong>🔄 الحالة:</strong> ${order.status}</p>
+        <p><strong>📝 الملاحظات:</strong> ${order.notes || "لا توجد"}</p>
+        <ul>${listItems}</ul>
+      `;
+      myOrdersContainer.appendChild(card);
+    });
+
+    if (!found) {
+      myOrdersContainer.innerHTML = "<p>❌ لا توجد طلبات حالية.</p>";
+    }
   });
 }
 </script>
