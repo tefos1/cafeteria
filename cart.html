@@ -127,6 +127,7 @@ const cartContainer = document.getElementById("cartContainer");
 const orderSummary = document.getElementById("orderSummary");
 const myOrdersContainer = document.getElementById("myOrdersContainer");
 const order = JSON.parse(localStorage.getItem("order")) || { cart: [] };
+const userId = localStorage.getItem("userUID");
 
 // ✅ عرض محتويات السلة
 if (order.cart.length > 0) {
@@ -176,6 +177,7 @@ function confirmOrder() {
   const newOrder = {
     code: orderCode,
     studentName: nameValue,
+    userId: userId, // ✅ يربط الطلب بالمستخدم
     items: order.cart,
     pickupTime: timeValue,
     notes: note,
@@ -211,10 +213,10 @@ function trackLiveStatus(code) {
   });
 }
 
-// ✅ عرض الطلبات الحالية (Realtime)
+// ✅ عرض الطلبات الخاصة بالمستخدم الحالي فقط
 function showMyOrders() {
   myOrdersContainer.innerHTML = "🔄 جاري تحميل طلباتك...";
-  db.ref("orders").on("value", snapshot => {
+  db.ref("orders").orderByChild("userId").equalTo(userId).on("value", snapshot => {
     myOrdersContainer.innerHTML = "";
     let found = false;
 
